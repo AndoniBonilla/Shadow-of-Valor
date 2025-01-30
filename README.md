@@ -19,12 +19,13 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 3. Make a package
 4. Connect your project files to this package
 5. Go to Build Path < Donfigure Build Path< Add External JARs 
-6. Downlad the following jar files for javaFX: <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
-7. In eclipse go to the Run drop down and find the Run configurations.
-8. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1
-9. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
-10. Example: <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
-11. Press Apply and then run
+6. Downlad the following jar files for javaFX:
+<img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
+8. In eclipse go to the Run drop down and find the Run configurations.
+9. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1
+10. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
+11. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
+1w. Press Apply and then run
 
 Preferably use Eclipse(I don't have knowledge of other IDE's)
 Another way(might work, might not) 
