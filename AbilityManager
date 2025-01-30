@@ -1,314 +1,161 @@
 package FightingGame;
 
-// Import statements for required utilities and libraries
-import java.util.HashMap; // Used for storing ability cooldowns 
-import javafx.application.Platform; // Used for updating JavaFX UI components
+// Import necessary Java and JavaFX packages
+import java.util.ArrayList; // For creating resizable arrays to store character data
+import java.util.List; // For managing collections of characters
+import javafx.scene.paint.Color; // For setting the colors of characters
 
-//Main class responsible for managing special abilities in the game
-
-public class AbilityManager 
-
-{
-	private static final HashMap<String, Integer> abilityCooldowns = new HashMap<>();// A HashMap to store the cooldown durations for various abilities (in milliseconds)
-
-  
-	static // Static block to initialize ability cooldowns when the class is first loaded
-	{ 
-        abilityCooldowns.put("flame rush", 10000); // Cooldown of 10 seconds
-        abilityCooldowns.put("speed surge", 9000); // Cooldown of 9 seconds
-        abilityCooldowns.put("electric burst", 9000); // Cooldown of 9 seconds
-        abilityCooldowns.put("blazing punch", 9000); // Cooldown of 9 seconds
-        abilityCooldowns.put("shadow step", 5000); // Cooldown of 5 seconds
-        abilityCooldowns.put("nature's embrace", 15000); // Cooldown of 15 seconds
-        abilityCooldowns.put("shadow strike", 11000); // Cooldown of 11 seconds
-        abilityCooldowns.put("stone wall", 10000); // Cooldown of 10 seconds
-    }
-	
-	 /**
-     * Retrieves the cooldown duration for a given ability by its name.
-     * If the ability name is not found, a default cooldown of 5000 ms is returned.
-     *
-     * @param abilityName The name of the ability to check
-     * @return Cooldown duration in milliseconds
-     */
-	
-
-    public static int getCooldown(String abilityName) 
-    {
-        return abilityCooldowns.getOrDefault(abilityName.toLowerCase(), 5000);
-    }
+/**
+ * Class to manage and provide the list of playable characters.
+ */
+public class CharacterRoster {
 
     /**
-     * Executes the special ability of the given user and applies its effects
-     * to the opponent or the user itself based on the ability.
+     * Returns a list of playable characters with their attributes.
      *
-     * @param user The character using the ability
-     * @param opponent The opponent character affected by the ability
+     * @return a List of Character objects representing the roster of playable characters.
      */
-    
-    public static void executeAbility(Character user, Character opponent)  
-    {
-        switch (user.getSpecialAbilityName().toLowerCase())  // Retrieve the name of the user's special ability and act accordingly
+    public static List<Character> getCharacters() {
+        // Initialize an empty list to store character objects.
+        List<Character> characters = new ArrayList<>();
 
-        
-        {
-            case "flame rush":
-                user.setSpecialAbilityCooldown(10000); // Set cooldown to 10 second
-                boostAttack(user, 2, 6000);  // Double attack power for 6 seconds
-                break;
+        // Create and initialize each character with their specific attributes.
 
-            case "speed surge":
-                user.setSpecialAbilityCooldown(9000); // Cooldown of 5 seconds
-                speedSurge(user, 1.2, 5000); // Increase speed and attack rate for 5 seconds
-                break;
+        // Blaze: A character with the ability to apply a burning effect to opponents.
+        Character blaze = new Character(
+            "Blaze", // Name of the character
+            2600, // Maximum health
+            75, // Attack power
+            65, // Defense power
+            "Flame Rush", // Name of the special ability
+            Color.DARKRED, // Color representing the character
+            100, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" // Passive ability description (none)
+        );
+        // Special ability description: Blaze's attacks make him do more damage. 
 
-            case "electric burst":
-                user.setSpecialAbilityCooldown(9000); // Set cooldown to 9 seconds
-                amplifyMovementAndAttack(user, 2.0, 5000); // Boost attack and movement by 2x for 5 seconds
-                stunOpponent(opponent, 2000); // Stun opponent for 2 seconds
-                break;
+        // Aqua: A defensive character with a speed boost ability.
+        Character aqua = new Character(
+            "Aqua", // Name of the character
+            3400,  // Maximum health
+            55, // Attack power
+            160, // Defense power 
+            "Speed Surge", // Name of the special ability
+            Color.DARKBLUE, // Color representing the character
+            120,  // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
 
-            case "blazing punch":
-                user.setSpecialAbilityCooldown(9000); // Set cooldown to 9 seconds
-                boostNextAttack(user, 3); // Boost the next attack's damage by +3
-                break;
+        // Volt: A fast character with a chance to stun opponents.
+        Character volt = new Character(
+            "Volt", // Name of the character
+            1900, // Maxium Health
+            105, // Attack power
+            50, // Defense power 
+            "Electric Burst", // Name of the special ability
+            Color.GOLD, // Color representing the character
+            140, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
+        // Special ability description: Volt moves faster than other characters and temporarily opponents
 
-            case "shadow step":
-                user.setSpecialAbilityCooldown(5000); // Set cooldown to 5 seconds
-                teleport(user); // Teleport the user to a random position
-                break;
+        // Amber: A character with fast attacks and ampfilier ability
+        Character amber = new Character(
+            "Amber", // Name of the character
+            2400, // Maxium Health
+            68,  // Attack power
+            72, // Defense power 
+            "Blazing Punch", // Name of the special ability
+            Color.ORANGERED, // Color representing the character
+            160, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            ""  //  Passive ability description(none)
+        );
+        // Special ability description: Amber's attacks are boosted for 5 seconds
 
-            case "nature's embrace":
-                user.setSpecialAbilityCooldown(15000); // Set cooldown to 15 seconds
-                gradualHeal(user, 0.05, 10000); // Heal 5% of max health over 10 seconds
-                break;
+        // Shade: A teleporting character with damage bonuses from teleports.
+        Character shade = new Character(
+            "Shade", // Name of the character
+            1700, // Maxium Health
+            110, // Attack power
+            45, // Defense power 
+            "Shadow Step", // Name of the special ability
+            Color.MEDIUMPURPLE, // Color representing the character
+            180, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
+        // Special ability description: Shade teleports with his special ability
 
-            case "shadow strike":
-                user.setSpecialAbilityCooldown(11000); // Set cooldown to 11 seconds
-                goInvisible(user, 5000); // Make the user invisible for 5 seconds
-                break;
+        // Terra: A nature based character with healing mechanics.
+        Character terra = new Character(
+            "Terra", // Name of the character
+            3300,  // Maxium Health
+            58, // Attack power
+            155, // Defense power 
+            "Nature's Embrace", // Name of the special ability
+            Color.DARKGREEN, // Color representing the character
+            200, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
+        // Special ability description: Terra's special ability allows her to heal a piece of her health. 
 
-            case "earthquake":
-                user.setSpecialAbilityCooldown(10000); // Set cooldown to 10 seconds
-                amplifyMovementAndAttack(user, 1.05, 2000); // Slight boost to attack/movement for 2 seconds
-                stunOpponent(opponent, 7000); // Stun the opponent for 7 seconds
-                break;
+        // Night: A character that is based on attacking with his special ability. 
+        Character night = new Character(
+            "Night", // Name of the character
+            1750, // Maxium Health
+            115, // Attack power
+            48, // Defense power 
+            "Shadow Strike", // Name of the special ability
+            Color.DARKSLATEGRAY, // Color representing the character
+            220, // Starting position for the character on the X-coordinate
+            200, // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
+        // Special ability description: Night makes himself stronger for 3 seconds. 
 
+        // Boulder: A defensive tank character with a temporary defense boost ability.
+        Character boulder = new Character(
+            "Boulder",  // Name of the character
+            3600,// Maxium Health
+            50, // Attack power
+            170, // Defense power 
+            "Earthquake",  // Name of the special ability
+            Color.SADDLEBROWN,  // Color representing the character
+            240,  // Starting position for the character on the X-coordinate
+            200,  // Starting position for the character on the Y-coordinate
+            "" //  Passive ability description(none)
+        );
+        // Special ability description: Boulder throws an earthquake that stuns enemies and he strengths himself by increasing his attack power and speed.  
 
+        // Set up character opponents for gameplay.
+        blaze.setOpponent(aqua); // Blaze's opponent is Aqua.
+        aqua.setOpponent(blaze); // Aqua's opponent is Blaze.
 
-            default:
-                System.out.println("Unknown ability: " + user.getSpecialAbilityName());
-        }
-    }
-    /**
-     * Temporarily boosts the user's attack for their next attack.
-     *
-     * @param user The character receiving the attack boost
-     * @param bonus The amount of attack power to add
-     */
-    
-    private static void boostNextAttack(Character user, int bonus) 
-    {
-        int originalAttack = user.getAttackPower(); // Store the user's original attack power
-        user.setAttackPower(originalAttack + bonus); // Increase attack power temporarily
-        System.out.println(user.getName() + " has boosted the next attack!");
+        volt.setOpponent(amber); // Volt's opponent is Amber.
+        amber.setOpponent(volt); // Amber's opponent is Volt.
 
-        // Revert attack power to its original value after 5 seconds
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(5000); // Wait for 5 seconds
-            } 
-            catch (InterruptedException e) 
-            {
-                e.printStackTrace(); // Handle thread interruption
-            }
-            user.setAttackPower(originalAttack); // Restore original attack power
-            System.out.println(user.getName() + "'s attack boost has ended.");
-        }).start();
-    }
+        shade.setOpponent(terra); // Shade's opponent is Terra.
+        terra.setOpponent(shade); // Terra's opponent is Shade.
 
-    // Additional methods like `amplifyMovementAndAttack`, `speedSurge`, `stunOpponent`, 
-    // `teleport`, `gradualHeal`, and `goInvisible` follow similar logic.
-    // Each has its own specific parameters and effects for unique abilities.
+        night.setOpponent(boulder); // Night's opponent is Boulder.
+        boulder.setOpponent(night); // Boulder's opponent is Night.
 
- // Amplifies the user's movement speed and attack power for a specified duration
-    private static void amplifyMovementAndAttack(Character user, double multiplier, int duration)
-    {
-        // Save the original speed and attack power to restore later
-        double originalSpeed = user.getMovementSpeed();
-        int originalAttack = user.getAttackPower();
+        // Add all characters to the roster list.
+        characters.add(blaze);
+        characters.add(aqua);
+        characters.add(volt);
+        characters.add(amber);
+        characters.add(shade);
+        characters.add(terra);
+        characters.add(night);
+        characters.add(boulder);
 
-        // Apply the multiplier to the user's speed and attack power
-        user.setMovementSpeed(originalSpeed * multiplier);
-        user.setAttackPower((int) (originalAttack * multiplier));
-        System.out.println(user.getName() + " has amplified movement and attack!");
-
-        // Create a new thread to handle the timed effect
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(duration); // Wait for the duration of the effect
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Restore the user's original speed and attack power
-            user.setMovementSpeed(originalSpeed);
-            user.setAttackPower(originalAttack);
-            System.out.println(user.getName() + "'s amplification has ended.");
-        }).start();
-    }
-
-    // Boosts the user's attack power by a specified multiplier for a set duration
-    private static void boostAttack(Character user, int multiplier, int duration) 
-    {
-        // Save the user's original attack power
-        int originalAttack = user.getAttackPower();
-
-        // Multiply the user's attack power by the specified multiplier
-        user.setAttackPower(originalAttack * multiplier);
-        System.out.println(user.getName() + " boosted attack!");
-
-        // Create a new thread to restore the original attack power after the effect ends
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(duration); // Wait for the duration of the boost
-            } 
-            catch (InterruptedException e) 
-            {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Restore the original attack power
-            user.setAttackPower(originalAttack);
-            System.out.println(user.getName() + "'s attack boost has ended.");
-        }).start();
-    }
-
-    // Increases the user's movement speed and attack rate for a specified duration
-    private static void speedSurge(Character user, double multiplier, int duration) 
-    {
-        // Save the original movement speed
-        double originalSpeed = user.getMovementSpeed();
-
-        // Increase the movement speed by the multiplier
-        user.setMovementSpeed(originalSpeed * multiplier);
-        System.out.println(user.getName() + " is in Speed Surge mode! Movement speed boosted!");
-
-        // Delegate attack-related changes to the user's method
-        user.boostAttackSpeed(multiplier, duration);
-
-        // Create a new thread to restore the original movement speed after the duration ends
-        new Thread(() -> 
-        {
-            try {
-                Thread.sleep(duration); // Wait for the duration of the effect
-            } 
-            catch (InterruptedException e) 
-            {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Restore the original movement speed
-            user.setMovementSpeed(originalSpeed);
-            System.out.println(user.getName() + "'s Speed Surge has ended!");
-        }).start();
-    }
-
-    // Temporarily stuns the opponent, preventing them from acting
-    private static void stunOpponent(Character opponent, int duration) 
-    {
-        // Set the opponent's stunned state to true
-        opponent.setStunned(true);
-        System.out.println(opponent.getName() + " is stunned!");
-
-        // Create a new thread to remove the stun after the duration ends
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(duration); // Wait for the duration of the stun
-            } 
-            catch (InterruptedException e) {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Use Platform.runLater to update JavaFX components on the main thread
-            Platform.runLater(() -> {
-                opponent.setStunned(false); // Remove the stunned state
-                System.out.println(opponent.getName() + " is no longer stunned.");
-            });
-        }).start();
-    }
-
-    // Teleports the user to a random position within the arena
-    private static void teleport(Character user) 
-    {
-        // Calculate a random position within the arena's bounds
-        double newX = Math.random() * (GameApp.ARENA_WIDTH - 50) + 25;
-        double newY = Math.random() * (GameApp.ARENA_HEIGHT - 50) + 25;
-
-        // Use Platform.runLater to update JavaFX components on the main thread
-        Platform.runLater(() -> 
-        {
-            user.getCharacterSprite().setLayoutX(newX); // Set the new X position
-            user.getCharacterSprite().setLayoutY(newY); // Set the new Y position
-            System.out.println(user.getName() + " teleported to (" + newX + ", " + newY + ").");
-        });
-    }
-
-    // Gradually heals the user over a specified duration
-    private static void gradualHeal(Character user, double healPercent, int duration) 
-    {
-        // Calculate the total amount of health to heal and divide it into steps
-        int totalHeal = (int) (user.getMaxHealth() * healPercent);
-        int healSteps = duration / 1000; // Heal over 1-second intervals
-        int healPerStep = totalHeal / healSteps;
-
-        // Create a new thread to handle the gradual healing process
-        new Thread(() -> 
-        {
-            for (int i = 0; i < healSteps; i++)
-            {
-                try 
-                {
-                    Thread.sleep(1000); // Wait 1 second between each heal step
-                } 
-                catch (InterruptedException e) 
-                {
-                    e.printStackTrace(); // Print the stack trace if the thread is interrupted
-                }
-                // Increase the user's health by the calculated amount for each step
-                user.setHealth((int) (user.getHealth() + healPerStep));
-                System.out.println(user.getName() + " healed " + healPerStep + " health.");
-            }
-        }).start();
-    }
-
-    // Makes the user invisible for a specified duration
-    private static void goInvisible(Character user, int duration) 
-    {
-        // Set the user's character sprite opacity to 0 (invisible)
-        user.getCharacterSprite().setOpacity(0);
-        System.out.println(user.getName() + " is now invisible!");
-
-        // Create a new thread to make the user visible again after the duration ends
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(duration); // Wait for the duration of invisibility
-            } 
-            catch (InterruptedException e) 
-            {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Restore the sprite's opacity to make the user visible again
-            user.getCharacterSprite().setOpacity(1.0);
-            System.out.println(user.getName() + " is now visible again.");
-        }).start();
+        // Return the completed list of characters.
+        return characters;
     }
 }
