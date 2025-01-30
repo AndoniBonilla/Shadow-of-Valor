@@ -1,121 +1,227 @@
 package FightingGame;
 
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import java.util.List;
-import java.util.function.BiConsumer;
-import javafx.geometry.Pos;
+// Import JavaFX classes for layout and UI elements
+import javafx.geometry.Pos; // For aligning elements within layouts 
+import javafx.scene.Scene; // Represents a JavaFX scene
+import javafx.scene.control.Button; // Button control for user interaction
+import javafx.scene.control.Label; // Label control for displaying text
+import javafx.scene.layout.GridPane; // A grid-based layout for arranging nodes
+import javafx.scene.layout.HBox; // A horizontal box layout
+import javafx.scene.layout.VBox; // A vertical box layout
 
+import java.util.List; // List interface for managing characters
+import java.util.function.BiConsumer; // Functional interface for handling two inputs (player1, player2)
+
+/**
+ * This class represents the character selection screen in the game.
+ * Players can select characters, view their passive abilities, and mark readiness.
+ */
 public class CharacterSelectScreen {
-    private Scene scene;
-    private Label player1Selection;
-    private Label player2Selection;
-    private boolean player1Ready = false;
-    private boolean player2Ready = false;
-    private Character player1Character;
-    private Character player2Character;
-    private Button player1ReadyButton;
-    private Button player2ReadyButton;
+    // Fields for managing the scene and player selections
+    private Scene scene; // The main scene for the character selection screen
+    private Label player1Selection; // Label to display Player 1's character selection
+    private Label player2Selection; // Label to display Player 2's character selection
+    private boolean player1Ready = false; // Tracks if Player 1 is ready
+    private boolean player2Ready = false; // Tracks if Player 2 is ready
+    private Character player1Character; // Player 1's selected character
+    private Character player2Character; // Player 2's selected character
+    private Button player1ReadyButton; // Button to mark Player 1 as ready
+    private Button player2ReadyButton; // Button to mark Player 2 as ready
+    private BiConsumer<Character, Character> onReady; // Callback function for when both players are ready
 
-    // Callback that will be called when both players are ready
-    private BiConsumer<Character, Character> onReady;
-
+    /**
+     * Sets the callback function to execute when both players are ready.
+     * @param onReady A BiConsumer that accepts Player 1 and Player 2's characters.
+     */
     public void setOnReady(BiConsumer<Character, Character> onReady) {
         this.onReady = onReady;
     }
 
+    /**
+     * Builds and returns the scene for the character selection screen.
+     * @return A Scene object containing the UI for character selection.
+     */
+    /**
+     * Builds and returns the character selection screen as a JavaFX `Scene`.
+     * The scene includes:
+     * 1. A grid for displaying characters with their passive abilities.
+     * 2. Controls for Player 1 and Player 2 to select, ready up, or deselect characters.
+     * 3. A "Start Game" button to transition to gameplay once both players are ready.
+     * 
+     * @return The constructed Scene object for character selection.
+     */
     public Scene getScene() {
-        VBox mainLayout = new VBox(15);
-        mainLayout.setAlignment(Pos.CENTER);
+        // Create the main vertical layout for the character selection screen
+        VBox mainLayout = new VBox(15); // Vertical layout with 15px spacing
+        mainLayout.setAlignment(Pos.CENTER); // Center all elements horizontally and vertically
 
-        GridPane characterGrid = new GridPane();
-        characterGrid.setHgap(10);
-        characterGrid.setVgap(10);
+        // Grid to display characters and their passive abilities
+        GridPane characterGrid = new GridPane(); // Grid layout for character buttons
+        characterGrid.setHgap(10); // 10px horizontal spacing between cells
+        characterGrid.setVgap(10); // 10px vertical spacing between cells
 
-        List<Character> characters = CharacterRoster.getCharacters();
+        // Retrieve the list of characters and ensure all passive abilities are defined
+        List<Character> characters = CharacterRoster.getCharacters(); // Load all available characters
+        validatePassiveAbilities(characters); // Check that each character has a passive ability
 
+        // Populate the grid with character buttons and passive labels
         for (int i = 0; i < characters.size(); i++) {
             Character character = characters.get(i);
-            Button characterButton = new Button(character.getName());
-            characterButton.setOnAction(e -> selectCharacter(character));
-            characterGrid.add(characterButton, i % 4, i / 4);
+
+            // Create a vertical box for each character's button and passive label
+            VBox characterBox = new VBox(5); // Vertical layout with 5px spacing
+            characterBox.setAlignment(Pos.CENTER); // Center-align elements within the box
+
+            // Button for selecting the character
+            Button characterButton = new Button(character.getName()); // Button labeled with the character's name
+            characterButton.setOnAction(e -> selectCharacter(character)); // Assign an action to handle selection
+
+            // Label to display the character's passive ability
+            Label passiveLabel = new Label("" + character.getPassiveAbility()); // Label showing the passive
+            passiveLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: gray;"); // Set font size and color for the label
+
+            // Add the button and label to the character's vertical box
+            characterBox.getChildren().addAll(characterButton, passiveLabel);
+
+            // Add the character box to the grid (arranged in rows of 4)
+            characterGrid.add(characterBox, i % 4, i / 4); // Columns determined by index mod 4
         }
 
-        player1Selection = new Label("Player 1: Not selected");
-        player1ReadyButton = new Button("Player 1 Ready");
-        player1ReadyButton.setDisable(true);
+        // Player 1 controls
+        player1Selection = new Label("Player 1: Not selected"); // Label showing Player 1's selection status
+        player1ReadyButton = new Button("Player 1 Ready"); // Button to mark Player 1 as ready
+        player1ReadyButton.setDisable(true); // Initially disabled until a character is selected
         player1ReadyButton.setOnAction(e -> {
-            player1Ready = true;
-            player1ReadyButton.setDisable(true);
+            player1Ready = true; // Mark Player 1 as ready
+            player1ReadyButton.setDisable(true); // Disable the button to prevent multiple clicks
         });
 
+        // Button to allow Player 1 to deselect their chosen character
         Button player1DeselectButton = new Button("Deselect Player 1");
         player1DeselectButton.setOnAction(e -> {
-            if (!player1Ready) {
-                player1Character = null;
-                player1Selection.setText("Player 1: Not selected");
-                player1ReadyButton.setDisable(true);
+            if (!player1Ready) { // Only allow deselection if Player 1 is not ready
+                player1Character = null; // Clear Player 1's selected character
+                player1Selection.setText("Player 1: Not selected"); // Update the selection label
+                player1ReadyButton.setDisable(true); // Disable the ready button
             }
         });
 
+        // Layout for Player 1's controls
         VBox player1Controls = new VBox(10, player1Selection, player1ReadyButton, player1DeselectButton);
-        player1Controls.setAlignment(Pos.CENTER);
+        player1Controls.setAlignment(Pos.CENTER); // Center-align Player 1's controls
 
-        player2Selection = new Label("Player 2: Not selected");
-        player2ReadyButton = new Button("Player 2 Ready");
-        player2ReadyButton.setDisable(true);
+        // Player 2 controls
+        player2Selection = new Label("Player 2: Not selected"); // Label showing Player 2's selection status
+        player2ReadyButton = new Button("Player 2 Ready"); // Button to mark Player 2 as ready
+        player2ReadyButton.setDisable(true); // Initially disabled until a character is selected
         player2ReadyButton.setOnAction(e -> {
-            player2Ready = true;
-            player2ReadyButton.setDisable(true);
+            player2Ready = true; // Mark Player 2 as ready
+            player2ReadyButton.setDisable(true); // Disable the button to prevent multiple clicks
         });
 
+        // Button to allow Player 2 to deselect their chosen character
         Button player2DeselectButton = new Button("Deselect Player 2");
         player2DeselectButton.setOnAction(e -> {
-            if (!player2Ready) {
-                player2Character = null;
-                player2Selection.setText("Player 2: Not selected");
-                player2ReadyButton.setDisable(true);
+            if (!player2Ready) { // Only allow deselection if Player 2 is not ready
+                player2Character = null; // Clear Player 2's selected character
+                player2Selection.setText("Player 2: Not selected"); // Update the selection label
+                player2ReadyButton.setDisable(true); // Disable the ready button
             }
         });
 
+        // Layout for Player 2's controls
         VBox player2Controls = new VBox(10, player2Selection, player2ReadyButton, player2DeselectButton);
-        player2Controls.setAlignment(Pos.CENTER);
+        player2Controls.setAlignment(Pos.CENTER); // Center-align Player 2's controls
 
+        // Button to start the game once both players are ready
         Button startGameButton = new Button("Start Game");
         startGameButton.setOnAction(e -> {
-            if (player1Ready && player2Ready) {
-                // Use the onReady callback if set, otherwise start directly
-                if (onReady != null) {
-                    onReady.accept(player1Character, player2Character);
+            if (player1Ready && player2Ready) { // Check if both players are marked as ready
+                if (player1Character != null && player2Character != null) { // Ensure both characters are selected
+                    // Log the selected characters and their passives
+                    System.out.println("Starting game with:");
+                    System.out.println("Player 1: " + player1Character.getName());
+                    System.out.println("Player 2: " + player2Character.getName());
+                    if (onReady != null) { // If a callback for readiness is defined
+                        onReady.accept(player1Character, player2Character); // Pass selected characters to the callback
+                    }
                 } else {
-                    System.out.println("onReady callback not set.");
+                    System.err.println("Both characters must be selected before starting the game.");
                 }
             } else {
-                System.out.println("Both players need to be ready before starting.");
+                System.out.println("Both players need to be ready."); // Prompt readiness if not fulfilled
             }
         });
 
-        HBox playerControls = new HBox(50, player1Controls, player2Controls);
-        playerControls.setAlignment(Pos.CENTER);
+        // Layout combining Player 1 and Player 2 controls horizontally
+        HBox playerControls = new HBox(50, player1Controls, player2Controls); // Horizontal layout with 50px spacing
+        playerControls.setAlignment(Pos.CENTER); // Center-align the controls
 
+        // Add all elements to the main vertical layout
         mainLayout.getChildren().addAll(characterGrid, playerControls, startGameButton);
+
+        // Create a scene with the main layout and set its dimensions
         scene = new Scene(mainLayout, 600, 400);
-        return scene;
+        return scene; // Return the constructed scene
     }
 
+    /**
+     * Handles character selection for Player 1 or Player 2.
+     * This method ensures that:
+     * 1. Characters are not selected by both players simultaneously.
+     * 2. Player 1 and Player 2 can select their characters independently.
+     * 3. Once selected, the appropriate buttons and labels are updated to reflect the player's choice.
+     *
+     * @param character The selected character that the player is attempting to choose.
+     */
     private void selectCharacter(Character character) {
+        // Check if the character is already selected by either player
+        if ((player1Character == character) || (player2Character == character)) {
+            System.out.println("Character " + character.getName() + " is already selected.");
+            return; // Prevent duplicate selection and exit the method
+        }
+
+        // Check if Player 1 is not ready and hasn't selected a character yet
         if (!player1Ready && player1Character == null) {
+            // Update Player 1's selection label and assign the character
             player1Selection.setText("Player 1: " + character.getName());
             player1Character = character;
-            player1ReadyButton.setDisable(false);
-        } else if (!player2Ready && player2Character == null) {
+            player1ReadyButton.setDisable(false); // Enable the "Ready" button for Player 1
+
+            // Log Player 1's selection and the chosen character's passive ability
+            System.out.println("Player 1 selected: " + player1Character.getName());  
+                              
+        } 
+        // Check if Player 2 is not ready and hasn't selected a character yet
+        else if (!player2Ready && player2Character == null) {
+            // Update Player 2's selection label and assign the character
             player2Selection.setText("Player 2: " + character.getName());
             player2Character = character;
-            player2ReadyButton.setDisable(false);
+            player2ReadyButton.setDisable(false); // Enable the "Ready" button for Player 2
+
+            // Log Player 2's selection and the chosen character's passive ability
+            System.out.println("Player 2 selected: " + player2Character.getName());
+        }
+    }
+
+    /**
+     * Validates that all characters in the provided list have a defined passive ability.
+     * This ensures that:
+     * 1. Each character is properly configured before the game begins.
+     * 2. Any characters missing a passive ability are flagged with a warning in the console.
+     * 
+     * This method is useful for debugging and preventing issues during gameplay,
+     * such as trying to use undefined passive abilities.
+     * 
+     * @param characters The list of Character objects to validate.
+     */
+    public static void validatePassiveAbilities(List<Character> characters) {
+        for (Character character : characters) {
+            // Check if the character's passive ability is null
+            if (character.getPassiveAbility() == null) {
+                // Log a warning in the console if the passive ability is undefined
+                System.err.println("Warning: Character " + character.getName() + " has no passive ability!");
+            }
         }
     }
 }
