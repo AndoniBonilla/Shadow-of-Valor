@@ -36,7 +36,6 @@ java --module-path "path_to_javafx_lib" --add-modules javafx.controls,javafx.fxm
 
 
 
-
 Gameplay Instructions: 
 Character Selection:
 Choose a fighter from the character selection screen. Select Ready up when you are sure you select a character, cannot undo this. 
