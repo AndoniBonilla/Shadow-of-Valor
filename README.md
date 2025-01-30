@@ -9,7 +9,7 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 - Single Round matches with win/loss conditions
 - Intallation/Setup
 - Java 22.01
-- JavaFC 22 (Make sure you have the correct JavaFX SDK)
+- JavaFX 22 (Make sure you have the correct JavaFX SDK)
 * This project was done on Mac, so no guarantee that it will work on Windows)
 * Windows may take a different approach
 
