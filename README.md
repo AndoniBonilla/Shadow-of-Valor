@@ -4,14 +4,22 @@ A JavaFX-based fighting game that features unique characters, abilties and proje
 
 
 This game is a 1v1 based fighting game with a pixelated logo, character move list, and character selection screen. 
+
 - Multiple playable characters with unique abilties
+  
 - Combat mechanics such as attacking, blocking, and projectiles
+  
 - Single Round matches with win/loss conditions
 - Intallation/Setup
+  
 - Java 22.01
+  
 - JavaFX 23.01 (Make sure you have the correct JavaFX SDK based on your system)
+  
 - Downlad JavaFX 23.01 from Gloun
+  
 - Below are the differnt ones
+  
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
 - 1. macOS (x64) SDK
 Download: This version is suitable for macOS computers with Intel processors (64-bit architecture). If you have a Mac with an Intel-based processor (like a MacBook Pro with Intel Core i7), they should download this version.
@@ -65,6 +73,7 @@ For the downloads: Choose the download that goes with your computer and has the 
 11. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
 12. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
 13. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
+
 14. Press Apply and then run
 
 Preferably use Eclipse(I don't have knowledge of other IDE's)
