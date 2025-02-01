@@ -54,10 +54,13 @@ For the downloads: Choose the download that goes with your computer and has the 
 5. Go to Build Path < Donfigure Build Path< Add External JARs 
 6. Downlad the following jar files for javaFX(this should be found fromt the download from Gluon):
 <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
+
 7. This is found in the lib folder on your javafx-sdk 23.01.
 8. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
+
 9. Select the files seen in step 6:
 <img width="1302" alt="Screenshot 2025-02-01 at 4 15 13 PM" src="https://github.com/user-attachments/assets/3d171111-461c-4757-a0ab-efb814dbe394" />
+
 10. In eclipse go to the Run drop down and find the Run configurations.
 11. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
 12. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
