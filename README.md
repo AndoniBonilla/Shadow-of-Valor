@@ -21,7 +21,7 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 - Below are the differnt ones
   
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
-- 1. macOS (x64) SDK
+1. macOS (x64) SDK
 Download: This version is suitable for macOS computers with Intel processors (64-bit architecture). If you have a Mac with an Intel-based processor (like a MacBook Pro with Intel Core i7), they should download this version.
 File: javafx-sdk-23.0.1_macos-x64_sdk.zip
 Use: This download contains the full JavaFX SDK, which includes the libraries and documentation required to run JavaFX applications.
