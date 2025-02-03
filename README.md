@@ -128,7 +128,6 @@ Class Structure:
  
  │   ├── AbilityManager.java      # Special abilities logic and cooldowns
  
- ├── assets/                     # Sprites and sounds
  
  
  
