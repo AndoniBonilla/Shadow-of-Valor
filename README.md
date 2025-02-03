@@ -103,7 +103,7 @@ Blocking: Reduces damage but you lose some of your shield
 Projectiles: Mostly for fun, they don't do damage(unfortunatly this had to be sacrficed for gameplay functionality)
 Abilties: Cooldowns apply to attacks and special abilities
 
-Coass Structure: 
+Class Structure: 
 /src
  ├── FightingGame/
  
