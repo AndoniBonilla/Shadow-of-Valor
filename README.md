@@ -18,7 +18,7 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
   
 - Downlad JavaFX 23.01 from Gloun
   
-- Below are the differnt ones
+- Below are the different ones
   
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
 1. macOS (x64) SDK
