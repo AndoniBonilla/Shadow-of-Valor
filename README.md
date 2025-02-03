@@ -103,20 +103,21 @@ Blocking: Reduces damage but you lose some of your shield
 Projectiles: Mostly for fun, they don't do damage(unfortunatly this had to be sacrficed for gameplay functionality)
 Abilties: Cooldowns apply to attacks and special abilities
 
-Projectile Structure: 
+Coass Structure: 
 /src
  ├── FightingGame/
- │   ├── GameApp.java           # Main game loop
- │   ├── Character.java         # Character logic and attributes
- │   ├── CharacterRoster.java   # Character selection
- │   ├── CharacterSelectScreen.java  # UI for character selection
- │   ├── FightArenaFrame.java   # Game window container
- │   ├── FightArenaPanel.java   # Renders characters, health bars, and round updates
- │   ├── RoundManager.java      # Handles rounds and win conditions
- │   ├── Projectile.java        # Projectile behavior and hit detection
- │   ├── ProjectileManager.java # Manages active projectiles and collisions
- │   ├── AbilityManager.java    # Special abilities logic and cooldowns
- ├── assets/                    # Sprites and sounds
+ 
+ │   ├── GameApp.java             # Main game loop
+ │   ├── Character.java            # Character logic and attributes
+ │   ├── CharacterRoster.java      # Character selection
+ │   ├── CharacterSelectScreen.java    # UI for character selection
+ │   ├── FightArenaFrame.java     # Game window container
+ │   ├── FightArenaPanel.java     # Renders characters, health bars, and round updates
+ │   ├── RoundManager.java        # Handles rounds and win conditions
+ │   ├── Projectile.java          # Projectile behavior and hit detection
+ │   ├── ProjectileManager.java   # Manages active projectiles and collisions
+ │   ├── AbilityManager.java      # Special abilities logic and cooldowns
+ ├── assets/                     # Sprites and sounds
  ├── README.md                   # This file
 
 
