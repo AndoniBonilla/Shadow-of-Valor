@@ -105,20 +105,33 @@ Abilties: Cooldowns apply to attacks and special abilities
 
 Class Structure: 
 /src
- ├── FightingGame/
+
+ ├── FightingGame Project:
  
  │   ├── GameApp.java             # Main game loop
+ 
  │   ├── Character.java            # Character logic and attributes
+ 
  │   ├── CharacterRoster.java      # Character selection
+ 
  │   ├── CharacterSelectScreen.java    # UI for character selection
+ 
  │   ├── FightArenaFrame.java     # Game window container
+ 
  │   ├── FightArenaPanel.java     # Renders characters, health bars, and round updates
+ 
  │   ├── RoundManager.java        # Handles rounds and win conditions
+ 
  │   ├── Projectile.java          # Projectile behavior and hit detection
+ 
  │   ├── ProjectileManager.java   # Manages active projectiles and collisions
+ 
  │   ├── AbilityManager.java      # Special abilities logic and cooldowns
+ 
  ├── assets/                     # Sprites and sounds
- ├── README.md                   # This file
+ 
+ 
+ 
 
 
 
