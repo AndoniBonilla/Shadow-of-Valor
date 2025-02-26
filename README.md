@@ -91,9 +91,9 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 4. Make a package
 
-<img width="269" alt="Screenshot 2025-02-26 at 3 09 21 PM" src="https://github.com/user-attachments/assets/0f487a89-8c66-4845-9067-a51fd43f55cd" />
 
 6. Create the classes:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
+<img width="269" alt="Screenshot 2025-02-26 at 3 09 21 PM" src="https://github.com/user-attachments/assets/0f487a89-8c66-4845-9067-a51fd43f55cd" />
 
 7. Create a folder called Jar files for "Name of Project Files" from src folder 
 
@@ -105,21 +105,25 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 11. Select the following jar files from the lib folder in javafx-sdk: 23.0.1 folder
 <img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
 
-
-
-11. Right Click your project in the project Manager < Go to Build Path < Configure Build Path 
-
+12. Right Click your project in the project Manager < Go to Build Path < Configure Build Path
+    
 <img width="416" alt="Screenshot 2025-02-26 at 4 03 31 PM" src="https://github.com/user-attachments/assets/4b46442e-0e6f-4681-8803-8730570b4f7d" />
 
+13. Then, press the module path and press the "Add JAR button"
+<img width="1016" alt="Screenshot 2025-02-26 at 4 05 22 PM" src="https://github.com/user-attachments/assets/22e405b4-da35-4f9b-9564-7ce09b67ca15" />
 
-11. Then, press the module path and press the "Add JAR button"
-12. <img width="1016" alt="Screenshot 2025-02-26 at 4 05 22 PM" src="https://github.com/user-attachments/assets/22e405b4-da35-4f9b-9564-7ce09b67ca15" />
-
-13. In eclipse go to the Run drop down and find the Run configurations.
-14. 
+14. Press Apply, and then "Apply and Close"
+  
+15. In Eclipse, go to the Run drop down and find Run < Run Configurations
 <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
 
-15. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
+16. In "Main" check that the main class is the FightingGameApp file or the file that contains and that the project is the name of the project
+" public static void main(String[] args) 
+{
+    launch(args); 
+}
+
+<img width="760" alt="Screenshot 2025-02-26 at 4 23 33 PM" src="https://github.com/user-attachments/assets/02261315-ba9b-4491-83c4-42a38e12341a" />
 
 16. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
 
