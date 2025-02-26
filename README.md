@@ -2,7 +2,6 @@ A 2D Java based fighting game
 A JavaFX-based fighting game that features unique characters, abilties and projectile mechanics.
 
 
-
 This game is a 1v1 based fighting game with a pixelated logo, character move list, and character selection screen. 
 
 - Multiple playable characters with unique abilties
@@ -21,6 +20,7 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 - Below are the different ones
   
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
+
 1. Linux (x64) SDK
 Download: This version is a JavaFX libary complied for 64 bit Linux systems.
 File: openjfx-23.0.1_linux-x64_bin-sdk.zip
@@ -60,56 +60,72 @@ File: javafx-javadoc-23.0.1.zip
 ### Steps to Run 
 1. Download Eclipse IDE for Java Developers
 <img width="830" alt="Screenshot 2025-02-26 at 2 22 05 PM" src="https://github.com/user-attachments/assets/90ee2ab2-d483-4c41-a5d9-c556ff1f7b25" />
-- Download x86_64 for macOS computers with Intel processors 
+
+- Download x86_64 for macOS computers with Intel processors
+  
 File: eclipse-java-2024-12-R-macosx-cocoa-x86_64.dmg
+
 - Download AArch64 for macOS computers with M1 and M2 chips
+
 File: eclipse-java-2024-12-R-macosx-cocoa-aarch64.dmg
+
 3. Open a new Java Project
+
 4. Make a package
+
 5. Create the classes: 
+
 6. Connect your project files to this package
+
 7. Go to Build Path < Configure Build Path< Add External JARs 
+
 8. Downlad the following jar files for javaFX(this should be found from the download from Gluon):
+
 <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
 
 9. This is found in the lib folder on your javafx-sdk 23.01.
+
 10. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
 
 11. Select the files seen in step 6:
 <img width="1302" alt="Screenshot 2025-02-01 at 4 15 13 PM" src="https://github.com/user-attachments/assets/3d171111-461c-4757-a0ab-efb814dbe394" />
 
 12. In eclipse go to the Run drop down and find the Run configurations.
+
 13. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
+
 14. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
+
 15. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
 
 16. Press Apply and then run
 
-Preferably use Eclipse(I don't have knowledge of other IDE's)
-Another way(might work, might not) 
-git clone https://github.com/YourUsername/JavaFightingGame.git
-cd JavaFightingGame
-javac --module-path "path_to_javafx_lib" --add-modules javafx.controls,javafx.fxml -d bin src/FightingGame/*.java
-For refernece: 
-java --module-path "path_to_javafx_lib" --add-modules javafx.controls,javafx.fxml -cp bin FightingGame.GameApp
-
-
 
 Gameplay Instructions: 
+
 Character Selection:
+
 Choose a fighter from the character selection screen. Select Ready up when you are sure you select a character, cannot undo this. 
 If you want to switch character, before you ready up, press the character deselct. 
-Each character has unique a special ability, or at least some similar ones just slightly augmented. 
+Each character has unique a special ability, or at least some similar ones with augmentations. 
+
 Movement: WASD(Player 1) Arrow Keys(Player 2)
+
 Basic Attack: X(P1) / J(P2)
+
 Special Ability: C(P1) / K(P2)
+
 Block: Z(P1) / M(P2)
+
 Projectile: V(P1) / L(P2)
 
 Game Mechanics: 
 Attacks: Each character has a basic attack with a 10% chance to miss an attack and a 30% chance to hit a critical attack. 
+
 Blocking: Reduces damage but you lose some of your shield 
+
 Projectiles: Mostly for fun, they don't do damage(unfortunatly this had to be sacrficed for gameplay functionality)
+
 Abilties: Cooldowns apply to attacks and special abilities
 
 Class Structure: 
@@ -135,3 +151,11 @@ Class Structure:
 
  │   ├── RoundManager.java            # Makes sure that there are only 2 players at one time
    
+ │   ├── Fighting Game Files 
+         ├── Jar files for FightingGame
+             ├── javafx.base.jar
+             ├──javafx.controls.jar
+             ├──javafx.fxml.jar
+             ├──javafx.graphics.jar
+             ├──javafx.media.jar
+             ├──javafx.web.jar
