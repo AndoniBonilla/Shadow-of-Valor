@@ -87,38 +87,38 @@ File: eclipse-java-2024-12-R-linux-gtk-aarch64.tar.gz
 
 File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
-3. Open a new Java Project
+2. Open a new Java Project
 
-4. Make a package
+3. Make a package
 
 
-6. Create the classes:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
+4. Create the classes:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
 <img width="269" alt="Screenshot 2025-02-26 at 3 09 21 PM" src="https://github.com/user-attachments/assets/0f487a89-8c66-4845-9067-a51fd43f55cd" />
 
-7. Create a folder called Jar files for "Name of Project Files" from src folder 
+5. Create a folder called Jar files for "Name of Project Files" from src folder 
 
-9. Then create a folder called "Jar files for <Project Name>" for the highlighted jar files:
+6. Then create a folder called "Jar files for <Project Name>" for the highlighted jar files:
 
-10. Find the from the javafx-sdk: 23.0.1 folder(the example has 23.0.1 2 due to having javafx-sdk: 23.0.1 folders) to the folder "Jar files for the project":
+7. Find the from the javafx-sdk: 23.0.1 folder(the example has 23.0.1 2 due to having javafx-sdk: 23.0.1 folders) to the folder "Jar files for the project":
 
 
-11. Select the following jar files from the lib folder in javafx-sdk: 23.0.1 folder
+8. Select the following jar files from the lib folder in javafx-sdk: 23.0.1 folder
 <img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
 
-12. Right Click your project in the project Manager < Go to Build Path < Configure Build Path
+9. Right Click your project in the project Manager < Go to Build Path < Configure Build Path
     
 <img width="416" alt="Screenshot 2025-02-26 at 4 03 31 PM" src="https://github.com/user-attachments/assets/4b46442e-0e6f-4681-8803-8730570b4f7d" />
 
-13. Then, press the module path and press the "Add JAR button"
+10. Then, press the module path and press the "Add JAR button"
 <img width="1016" alt="Screenshot 2025-02-26 at 4 05 22 PM" src="https://github.com/user-attachments/assets/22e405b4-da35-4f9b-9564-7ce09b67ca15" />
 
-14. Press Apply, and then "Apply and Close"
+11. Press Apply, and then "Apply and Close"
   
-15. In Eclipse, go to the Run drop down and find Run < Run Configurations
+12. In Eclipse, go to the Run drop down and find Run < Run Configurations
 
 <img width="900" alt="Screenshot 2025-02-26 at 4 24 56 PM" src="https://github.com/user-attachments/assets/9a53afe4-503b-412d-a46a-dd96d2b1a68b" />
 
-16. In "Main" check that the main class is the FightingGameApp file or the file that contains and that the project is the name of the project
+13. In "Main" check that the main class is the FightingGameApp file or the file that contains and that the project is the name of the project
 " public static void main(String[] args) 
 {
     launch(args); 
@@ -126,13 +126,13 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 <img width="760" alt="Screenshot 2025-02-26 at 4 23 33 PM" src="https://github.com/user-attachments/assets/02261315-ba9b-4491-83c4-42a38e12341a" />
 
-17. Move to "Arguments" and locate the VM arguemnts box
+14. Move to "Arguments" and locate the VM arguemnts box
 
 <img width="956" alt="Screenshot 2025-02-26 at 4 41 51 PM" src="https://github.com/user-attachments/assets/adb04ba4-f098-4c18-a9dd-4e8d99c7ffea" />
 
-18: Find the JavaFX SDK 23.0.1 and locate the lib folder(This will be used in the VM arguments
+15: Find the JavaFX SDK 23.0.1 and locate the lib folder(This will be used in the VM arguments
 
-19: Based on your system use these configurations:
+16: Based on your system use these configurations:
 
 MacOS/Linux:
 
@@ -149,7 +149,7 @@ Windows:
 --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base,javafx.media,javafx.web
 -Djava.library.path=C:\javafx-sdk-23.0.1\lib
 
-19. Press Apply and then run
+17. Press Apply and then run
 
 
 
