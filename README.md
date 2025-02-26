@@ -133,6 +133,7 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 18: Find the JavaFX SDK 23.0.1 and locate the lib folder(This will be used in the VM arguments
 
 19: Based on your system use these configurations:
+
 MacOS/Linux:
 
 --module-path /Users/YOUR_USERNAME/Downloads/javafx-sdk-23.0.1/lib 
