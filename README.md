@@ -57,9 +57,6 @@ File: javafx-sdk-23.0.1_windows-x64_jmods.zip
 Download: This download is the JavaFX documentation in a compressed format. 
 File: javafx-javadoc-23.0.1.zip
 
-* This project was done on Mac, so no guarantee that it will work on Windows and Linux 
-* Windows and Linux may take a different approach
-
 ### Steps to Run 
 1. Download Eclipse 
 2. Open a new Java Project
