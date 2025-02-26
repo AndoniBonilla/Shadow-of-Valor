@@ -64,7 +64,7 @@ File: javafx-javadoc-23.0.1.zip
 4. Create the classes: 
 5. Connect your project files to this package
 6. Go to Build Path < Configure Build Path< Add External JARs 
-7. Downlad the following jar files for javaFX(this should be found fromt the download from Gluon):
+7. Downlad the following jar files for javaFX(this should be found from the download from Gluon):
 <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
 
 8. This is found in the lib folder on your javafx-sdk 23.01.
