@@ -14,45 +14,51 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
   
 - Java 22.0.2
   
-- JavaFX 23.0.1 (Zip file linked) 
+- JavaFX 23.0.1 (Zip file linked for MacOS 64x SDK) 
   
-- Downlad JavaFX 23.01 from Gloun
+- Download JavaFX 23.01 from Gloun
   
 - Below are the different ones
   
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
-1. macOS (x64) SDK
-Download: This version is suitable for macOS computers with Intel processors (64-bit architecture). If you have a Mac with an Intel-based processor (like a MacBook Pro with Intel Core i7), you should download this version.
+1. Linux (x64) SDK
+Download: This version is a JavaFX libary complied for 64 bit Linux systems.
+File: openjfx-23.0.1_linux-x64_bin-sdk.zip
+   
+2. Linux (x64) jmods
+This version is for Linux systems but for JMOD files files instead of SDK. JMOD files are used for modular devlopement and focused on advaanced JavaFX usage. 
+File: openjfx-23.0.1_linux-x64_bin-jmods.zip
+
+3. macOS (x64) SDK
+Download: This version is suitable for macOS computers with Intel processors. 
 File: javafx-sdk-23.0.1_macos-x64_sdk.zip
-Use: This download contains the full JavaFX SDK, which includes the libraries and documentation required to run JavaFX applications.
-2. macOS (x64) jmods
+
+4. macOS (x64) jmods
 Download: This version is for macOS systems with Intel processors (64-bit architecture) but includes JMOD files instead of the SDK. JMOD files are typically used for modular development and are more focused on advanced JavaFX usage.
 File: javafx-sdk-23.0.1_macos-x64_jmods.zip
-Use: Only download this version if you're specifically working with Java modules, but in most cases, the SDK version (above) should suffice.9
-3. macOS (aarch64) SDK
-Download: This version is designed for macOS systems with Apple Silicon processors (M1, M2). If your client has a Mac with Apple Silicon (like a MacBook Air or MacBook Pro with an M1 or M2 chip), they should download this version.
+
+5. macOS (aarch64) SDK
+Download: This version is designed for macOS systems with Apple Silicon processors (M1, M2). 
 File: javafx-sdk-23.0.1_macos-aarch64_sdk.zip
-Use: This download includes the JavaFX SDK for ARM-based macOS systems.
-4. macOS (aarch64) jmods
+
+6. macOS (aarch64) jmods
 Download: Similar to the x64 jmods version, this is for Apple Silicon macOS systems and includes JMOD files.
 File: javafx-sdk-23.0.1_macos-aarch64_jmods.zip
-Use: Again, use this only if you need to work with modular JavaFX development. For most users, the SDK is sufficient.
-5. Windows (x64) SDK
-Download: This version is for Windows systems with 64-bit architecture (e.g., most modern Windows computers). Your client should download this if they are using Windows 10 or 11 (with an Intel or AMD 64-bit processor).
+
+7. Windows (x64) SDK
+Download: This version is for Windows systems with 64-bit architecture (e.g., most modern Windows computers). Use if you are  are using Windows 10 or 11 (with an Intel or AMD 64-bit processor).
 File: javafx-sdk-23.0.1_windows-x64_sdk.zip
-Use: This is the standard JavaFX SDK for Windows, containing all the libraries required to run JavaFX apps.
-6. Windows (x64) jmods
+
+8. Windows (x64) jmods
 Download: This is for Windows systems with 64-bit architecture but specifically contains JMOD files for modular JavaFX development.
 File: javafx-sdk-23.0.1_windows-x64_jmods.zip
-Use: Use this if you need to work with modular development; otherwise, the SDK version (above) is the standard choice.
-7. Javadocs
-Download: This download is simply the JavaFX documentation in a compressed format and is not necessary for running applications. It’s useful for developers who want to refer to JavaFX documentation offline.
-File: javafx-javadoc-23.0.1.zip
-Use: This is only needed if you want to access detailed JavaFX API documentation offline.
-For the downloads: Choose the download that goes with your computer and has the SDK download
 
-* This project was done on Mac, so no guarantee that it will work on Windows)
-* Windows may take a different approach
+9. Javadocs
+Download: This download is the JavaFX documentation in a compressed format. 
+File: javafx-javadoc-23.0.1.zip
+
+* This project was done on Mac, so no guarantee that it will work on Windows and Linux 
+* Windows and Linux may take a different approach
 
 ### Steps to Run 
 1. Download Eclipse 
