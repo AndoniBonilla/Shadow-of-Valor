@@ -14,7 +14,7 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 - Java 22.0.2
   
 - JavaFX 23.0.1 (Zip file linked for MacOS 64x SDK) 
-  
+
 - Download JavaFX 23.01 from Gloun
   
 - Below are the different ones
@@ -91,17 +91,27 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 4. Make a package
 
-5. Create the classes: 
+<img width="269" alt="Screenshot 2025-02-26 at 3 09 21 PM" src="https://github.com/user-attachments/assets/0f487a89-8c66-4845-9067-a51fd43f55cd" />
 
-6. Connect your project files to this package
+6. Create the classes:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
 
-7. Go to Build Path < Configure Build Path< Add External JARs 
+7. Create a folder called Jar files for "Name of Project Files" from src folder 
 
-8. Downlad the following jar files for javaFX(this should be found from the download from Gluon):
+9. Then create a folder called "Jar files for <Project Name>" for the highlighted jar files:
 
-<img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
+<img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
 
-9. This is found in the lib folder on your javafx-sdk 23.01.
+10. Find the from the javafx-sdk: 23.0.1 folder(the example has 23.0.1 2 due to having javafx-sdk: 23.0.1 folders) to the folder "Jar files for <Project Name>":
+
+11. Select the following jar files from the lib folder in javafx-sdk: 23.0.1 folder
+
+<img width="416" alt="Screenshot 2025-02-26 at 4 03 31 PM" src="https://github.com/user-attachments/assets/4b46442e-0e6f-4681-8803-8730570b4f7d" />
+
+11. Right Click your project in the project Manager < Go to Build Path < Configure Build Path < Press ModulePath < Add JARs
+
+<img width="1016" alt="Screenshot 2025-02-26 at 4 05 22 PM" src="https://github.com/user-attachments/assets/22e405b4-da35-4f9b-9564-7ce09b67ca15" />
+
+
 
 10. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
 
@@ -171,7 +181,7 @@ Class Structure:
    
  │   ├── Fighting Game Files 
          ├── Jar files for FightingGame
-             ├── javafx.base.jar
+             ├──javafx.base.jar
              ├──javafx.controls.jar
              ├──javafx.fxml.jar
              ├──javafx.graphics.jar
