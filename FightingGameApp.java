@@ -1,6 +1,6 @@
 package FightingGame;
 
-import javafx.application.Application; // Base class for JavaFX applications
+import javafx.application.Application; // Base class for JavaFX applications 
 import javafx.geometry.Pos;
 import javafx.scene.Scene; // Represents the contents of a JavaFX stage
 import javafx.scene.control.Button; // Button UI component for interactions
@@ -98,7 +98,7 @@ public class FightingGameApp extends Application
 
             try 
             {
-                Thread.sleep(90); // Pause for 0.1 second before switching colors
+                Thread.sleep(800); // Pause for 0.1 second before switching colors
             } 
             catch (InterruptedException e)
             {
