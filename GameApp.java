@@ -1,13 +1,12 @@
 package FightingGame;
 
-import java.util.HashSet; // Used for tracking active keys.    
+import java.util.HashSet; // Used for tracking active keys.       
 import java.util.Iterator; // For iterating through lists of projectiles.
 import java.util.List; // For managing lists of objects.
 import java.util.Set; // For handling unique key inputs.
 
 import javafx.animation.AnimationTimer; // For creating a game loop.
 import javafx.application.Platform; // Ensures UI updates occur on the JavaFX application thread.
-import javafx.scene.Node; // Represents UI elements like sprites.
 import javafx.scene.Scene; // Represents the game window's content.
 import javafx.scene.control.Alert; // Displays pop-up alerts.
 import javafx.scene.control.Label; // For displaying text (e.g., timer).
@@ -46,109 +45,108 @@ public class GameApp
     // Fields for tracking active keys and game state
     private static Set<KeyCode> activeKeys = new HashSet<>(); // Tracks currently pressed keys
     private static double timeRemaining = 200; // 300 seconds
-    
-    // Use size and speed dynamically for creating projectiles or logging.
 
     /**
      * Sets the primary stage for the application.
      *
      * @param stage The main game window.
      */
- 
-
     public static void setPrimaryStage(Stage stage) 
     {
         primaryStage = stage; // Assign the provided stage to the static field
         primaryStage.show(); // Make the stage visible
     }
 
+    /**
+     * Initializes and starts the game with the selected characters.
+     * This method sets up the game scene, initializes character positions,
+     * assigns opponents, sets up UI elements, and starts the game loop.
+     *
+     * @param player1 The first player's character.
+     * @param player2 The second player's character.
+     */
     public static void startGameWithCharacters(Character player1, Character player2) 
     {
-        root = new Pane(); // Create a new root pane for the game elements.
-        root.setStyle("-fx-background-color: lightgray;"); // Set the background color.
+        // Create a new root pane for the game elements
+        root = new Pane();
+        root.setStyle("-fx-background-color: lightgray;"); // Set the background color of the game
 
-        // Set the initial positions of the characters.
-        player1.getCharacterSprite().setLayoutX(100);
-        player1.getCharacterSprite().setLayoutY(200);
-        player2.getCharacterSprite().setLayoutX(400);
-        player2.getCharacterSprite().setLayoutY(200);
+        // Set initial positions of Player 1 and Player 2 on the game screen
+        player1.getCharacterSprite().setLayoutX(100); // Position Player 1 towards the left
+        player1.getCharacterSprite().setLayoutY(200); // Position Player 1 vertically centered
+        player2.getCharacterSprite().setLayoutX(400); // Position Player 2 towards the right
+        player2.getCharacterSprite().setLayoutY(200); // Position Player 2 vertically centered
 
-        // Assign opponents to the characters.
+        // Assign each player an opponent for attack and ability interactions
         player1.setOpponent(player2);
         player2.setOpponent(player1);
 
-        // Set visuals for abilities.
-        player1.setAbilityReadyVisual();
-        player2.setAbilityReadyVisual();
-
-        // Initialize health and shield bars for both players.
+        // Initialize the health bars, shield bars, and game timer
         setupHealthBars(player1, player2);
         setupShieldBars(player1, player2);
         setupTimerLabel();
 
-        // Add elements to the root pane.
+        // Add game elements (characters and timer) to the UI
         root.getChildren().addAll(
             player1.getCharacterSprite(),
             player2.getCharacterSprite(),
             timerLabel
         );
-        // Create a scene and set up key handlers.
+
+        // Create the game scene and configure key handlers for controls
         Scene scene = new Scene(root, ARENA_WIDTH, ARENA_HEIGHT);
         setupKeyHandlers(scene, player1, player2);
 
-        // Start the game loop and assign the scene to the primary stage.
+        // Start the game loop and initialize the round manager
         startGameLoop(player1, player2, new RoundManager(3, List.of(player1, player2)));
+
+        // Assign the scene to the primary stage and display the game window
         primaryStage.setScene(scene);
         primaryStage.show();
     }
     
     /**
-     * Adds a projectile to the game scene and the active projectile list.
-     *
-     * @param projectile The projectile to add.
-     */
-   
-
-    /**
      * Updates the health and shield bars for both players.
+     * This ensures that UI elements accurately reflect each player's current status.
      *
      * @param player1 The first player's character.
      * @param player2 The second player's character.
      */
     public static void updateBars(Character player1, Character player2) 
     {
-        // Update shield states.
+        // Update each player's shield status based on the current time
         player1.updateShieldState(System.currentTimeMillis());
         player2.updateShieldState(System.currentTimeMillis());
 
-        // Update Player 1's shield bar.
+        // Update Player 1's shield bar if it exists
         if (player1ShieldBar != null) 
         {
-            player1ShieldBar.setProgress(player1.getShieldLevel());
-            player1ShieldBar.setStyle(player1.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;");
+            player1ShieldBar.setProgress(player1.getShieldLevel()); // Set the shield bar value
+            player1ShieldBar.setStyle(player1.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;"); // Update color based on shield status
         }
 
-        // Update Player 2's shield bar.
+        // Update Player 2's shield bar if it exists
         if (player2ShieldBar != null) 
         {
-            player2ShieldBar.setProgress(player2.getShieldLevel());
-            player2ShieldBar.setStyle(player2.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;");
+            player2ShieldBar.setProgress(player2.getShieldLevel()); // Set the shield bar value
+            player2ShieldBar.setStyle(player2.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;"); // Update color based on shield status
         }
 
-        // Update Player 1's health bar.
+        // Update Player 1's health bar if it exists
         if (player1HealthBar != null) 
         {
-            player1HealthBar.setProgress(player1.getHealthPercentage());
-            player1HealthBar.setStyle(player1.getHealthPercentage() > 0 ? "-fx-accent: green;" : "-fx-accent: red;");
+            player1HealthBar.setProgress(player1.getHealthPercentage()); // Set the health bar value
+            player1HealthBar.setStyle(player1.getHealthPercentage() > 0 ? "-fx-accent: green;" : "-fx-accent: red;"); // Change color based on health status
         }
 
-        // Update Player 2's health bar.
+        // Update Player 2's health bar if it exists
         if (player2HealthBar != null)
         {
-            player2HealthBar.setProgress(player2.getHealthPercentage());
-            player2HealthBar.setStyle(player2.getHealthPercentage() > 0 ? "-fx-accent: green;" : "-fx-accent: red;");
+            player2HealthBar.setProgress(player2.getHealthPercentage()); // Set the health bar value
+            player2HealthBar.setStyle(player2.getHealthPercentage() > 0 ? "-fx-accent: green;" : "-fx-accent: red;"); // Change color based on health status
         }
     }
+
 
  // Initializes and positions shield bars for Player 1 and Player 2
     private static void setupShieldBars(Character player1, Character player2) 
@@ -171,7 +169,7 @@ public class GameApp
             player2ShieldBar.setPrefWidth(150); // Set the width of the shield bar
             player2ShieldBar.setLayoutX(400); // Position the shield bar near the right side of the screen
             player2ShieldBar.setLayoutY(80); // Position the shield bar below Player 2's health bar
-            player2ShieldBar.setStyle("-fx-accent: green;"); // Set the color of the shield bar to green
+            player2ShieldBar.setStyle("-fx-accent: blue;"); // Set the color of the shield bar to blue
             root.getChildren().add(player2ShieldBar); // Add Player 2's shield bar to the root pane
         }
     }
@@ -245,7 +243,8 @@ public class GameApp
     }
 
     // Sets up key handlers for the game scene
-    private static void setupKeyHandlers(Scene scene, Character player1, Character player2) {
+    private static void setupKeyHandlers(Scene scene, Character player1, Character player2) 
+    {
         // Key pressed handler
         scene.setOnKeyPressed(event -> 
         {
@@ -301,96 +300,6 @@ public class GameApp
                 }
             }
         });
-    }
- // Represents the size of the projectile, which is dynamically calculated during creation.
-    double size;
-
-    // Tracks whether the projectile has hit a target.
-    boolean hit = false;
-
-    /**
-     * Checks for collision between this projectile and another projectile.
-     * 
-     * @param other The other projectile to check for collision.
-     * @return True if the projectiles collide, false otherwise.
-     */
-    public boolean collidesWith(Projectile other)
-    {
-        // Ensure that both projectiles have valid graphical representations (sprites).
-        if (this.getSprite() == null || other.getSprite() == null)
-        {
-            System.out.println("Collision check failed: one or both sprites are null."); // Log the issue
-            return false; // No collision if sprites are null
-        }
-
-        // Calculate the horizontal and vertical distance between the two projectiles.
-        double dx = this.getSprite().getLayoutX() - other.getSprite().getLayoutX();
-        double dy = this.getSprite().getLayoutY() - other.getSprite().getLayoutY();
-
-        // Calculate the Euclidean distance between the centers of the two projectiles.
-        double distance = Math.sqrt(dx * dx + dy * dy);
-
-        // Calculate the combined radius needed for a collision (based on size).
-        double collisionDistance = (this.getSize() + other.getSize()) / 2;
-
-        // Debug log to output distance and collision threshold for transparency.
-        System.out.printf("Collision Check -> Distance: %.2f, Collision Distance: %.2f%n", distance, collisionDistance);
-
-        // Return true if the distance between projectiles is less than the collision threshold.
-        return distance < collisionDistance;
-    }
-
-    /**
-     * Retrieves the size of the projectile.
-     * 
-     * @return The size of the projectile.
-     */
-    public double getSize() 
-    {
-        return this.size; // Return the dynamically calculated size of the projectile.
-    }
-
-    // Represents the graphical node (sprite) associated with the projectile.
-    private Node sprite;
-
-    /**
-     * Retrieves the sprite (visual representation) of the projectile.
-     * 
-     * @return The Node object representing the projectile's sprite.
-     */
-    public Node getSprite() 
-    {
-        return this.sprite; // Return the projectile's sprite.
-    }
-
-    /**
-     * Determines the outcome of a collision between this projectile and another.
-     * Larger projectiles survive the collision while smaller ones are destroyed.
-     * 
-     * @param other The other projectile involved in the collision.
-     * @return True if this projectile survives, false otherwise.
-     */
-    public boolean cancelOut(Projectile other)
-    {
-        // Compare the sizes of the two projectiles.
-        if (this.size >= other.size) 
-        {
-            other.hit(); // Mark the other projectile as "hit" (destroyed).
-            return true; // This projectile survives the collision.
-        } 
-        else 
-        {
-            this.hit(); // Mark this projectile as "hit" (destroyed).
-            return false; // This projectile is destroyed.
-        }
-    }
-
-    /**
-     * Marks the projectile as hit (destroyed) during a collision.
-     */
-    private void hit() 
-    {
-        this.hit = true; // Update the state of the projectile to indicate it has been hit.
     }
 
     /**
@@ -470,24 +379,6 @@ public class GameApp
         // Check if the projectile is outside the defined arena boundaries.
         return x < 0 || x > ARENA_WIDTH || y < 0 || y > ARENA_HEIGHT;
     }
-
-    /**
-     * Deals damage to an opponent based on projectile properties.
-     * 
-     * @param opponent The character receiving the damage.
-     * @param baseDamage The base damage of the projectile.
-     */
-    public void dealDamageToOpponent(Character opponent, double baseDamage)
-    {
-        double defense = opponent.getDefensePower(); // Get the opponent's defense power.
-        double actualDamage = baseDamage - defense;  // Subtract defense from the base damage.
-        actualDamage = Math.max(0, actualDamage);    // Ensure damage is not negative.
-
-        opponent.reduceHealth(actualDamage);         // Apply the calculated damage to the opponent's health.
-        System.out.println(opponent.getName() + " took " + actualDamage 
-            + " damage. Remaining health: " + opponent.getHealth()); // Log the damage.
-    }
-
 
 
  // Handles the actions for Player 1 and Player 2 based on key inputs
@@ -591,49 +482,7 @@ public class GameApp
         });
     }
 
-    /**
-     * Adds a projectile's graphical sprite to the game scene.
-     *
-     * @param node The Node representing the projectile's sprite.
-     */
-    public static void addProjectileToScene(Node node) 
-    {
-        Platform.runLater(() -> 
-        {
-            // Ensure the action occurs on the JavaFX Application Thread
-            if (GameApp.root != null) 
-            {
-                GameApp.root.getChildren().add(node); // Add the projectile sprite to the game's root pane
-                System.out.println("Projectile added to the scene."); // Log the addition
-            } 
-            else 
-            {
-                System.err.println("Error: Game root is null. Unable to add projectile."); // Log an error
-            }
-        });
-    }
 
-    /**
-     * Removes a projectile's graphical sprite from the game scene.
-     *
-     * @param node The Node representing the projectile's sprite.
-     */
-    public static void removeProjectileFromScene(Node node) 
-    {
-        Platform.runLater(() -> 
-        {
-            // Ensure the action occurs on the JavaFX Application Thread
-            if (root != null) 
-            {
-                root.getChildren().remove(node); // Remove the projectile sprite from the game's root pane
-                System.out.println("Projectile sprite removed from the scene."); // Log the removal
-            } 
-            else 
-            {
-                System.err.println("Error: Game root is null. Unable to remove sprite."); // Log an error
-            }
-        });
-    }
 
     /**
      * Sets up health bars for Player 1 and Player 2.
