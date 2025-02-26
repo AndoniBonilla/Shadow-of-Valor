@@ -105,14 +105,13 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 11. Select the following jar files from the lib folder in javafx-sdk: 23.0.1 folder
 <img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
 
-11. Right Click your project in the project Manager < Go to Build Path < Configure Build Path < Press ModulePath < Add JARs
+11. Right Click your project in the project Manager < Go to Build Path < Configure Build Path 
 
 <img width="416" alt="Screenshot 2025-02-26 at 4 03 31 PM" src="https://github.com/user-attachments/assets/4b46442e-0e6f-4681-8803-8730570b4f7d" />
 
 <img width="1016" alt="Screenshot 2025-02-26 at 4 05 22 PM" src="https://github.com/user-attachments/assets/22e405b4-da35-4f9b-9564-7ce09b67ca15" />
 
-<img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
-
+11. Then, press the module path and press the "Add JAR button"  
 12. In eclipse go to the Run drop down and find the Run configurations.
 13. 
 <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
