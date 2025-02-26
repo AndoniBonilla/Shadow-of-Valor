@@ -115,7 +115,8 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 14. Press Apply, and then "Apply and Close"
   
 15. In Eclipse, go to the Run drop down and find Run < Run Configurations
-<img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
+
+<img width="900" alt="Screenshot 2025-02-26 at 4 24 56 PM" src="https://github.com/user-attachments/assets/9a53afe4-503b-412d-a46a-dd96d2b1a68b" />
 
 16. In "Main" check that the main class is the FightingGameApp file or the file that contains and that the project is the name of the project
 " public static void main(String[] args) 
@@ -125,11 +126,26 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 <img width="760" alt="Screenshot 2025-02-26 at 4 23 33 PM" src="https://github.com/user-attachments/assets/02261315-ba9b-4491-83c4-42a38e12341a" />
 
-16. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
+17. Move to "Arguments" and locate the VM arguemnts box
 
-17. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
+18: Find the JavaFX SDK 23.0.1 and locate the lib folder(This will be used in the VM arguments
+19: Based on your system use these configurations:
+MacOS/Linux:
 
-18. Press Apply and then run
+--module-path /Users/YOUR_USERNAME/Downloads/javafx-sdk-23.0.1/lib 
+--add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base,javafx.media,javafx.web
+-Djava.library.path=/Users/YOUR_USERNAME/Downloads/javafx-sdk-23.0.1/lib
+-Dprism.verbose=true
+-Dprism.order=sw
+-Djavafx.platform=macos
+(This assumes that your javafx 23.0.1 folder is in your downloads) 
+
+Windows:
+--module-path C:\javafx-sdk-23.0.1\lib 
+--add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base,javafx.media,javafx.web
+-Djava.library.path=C:\javafx-sdk-23.0.1\lib
+
+19. Press Apply and then run
 
 
 Gameplay Instructions: 
