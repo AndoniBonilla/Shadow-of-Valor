@@ -128,7 +128,10 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 17. Move to "Arguments" and locate the VM arguemnts box
 
+<img width="956" alt="Screenshot 2025-02-26 at 4 41 51 PM" src="https://github.com/user-attachments/assets/adb04ba4-f098-4c18-a9dd-4e8d99c7ffea" />
+
 18: Find the JavaFX SDK 23.0.1 and locate the lib folder(This will be used in the VM arguments
+
 19: Based on your system use these configurations:
 MacOS/Linux:
 
@@ -146,6 +149,9 @@ Windows:
 -Djava.library.path=C:\javafx-sdk-23.0.1\lib
 
 19. Press Apply and then run
+
+
+
 
 
 Gameplay Instructions: 
