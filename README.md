@@ -61,6 +61,7 @@ File: javafx-javadoc-23.0.1.zip
 1. Download Eclipse IDE for Java Developers
 
 <img width="830" alt="Screenshot 2025-02-26 at 2 22 05 PM" src="https://github.com/user-attachments/assets/90ee2ab2-d483-4c41-a5d9-c556ff1f7b25" />
+
 Windows:
 - Download x86_64 for window computers with a 64-bit Intel and AMD processors 
 File: eclipse-java-2024-12-R-win32-x86_64.zip
