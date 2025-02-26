@@ -89,10 +89,10 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 2. Open a new Java Project
 
-3. Make a package
+3. Make a package to hold all of the classes
 
 
-4. Create the classes:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
+4. Create the classes in the package:  AbilityManager.java, Character.java, CharacterRoster.java, CharacterSelectScreen.java, FightingGameApp.java, Projectile.java, ProjectileManager.java
 <img width="269" alt="Screenshot 2025-02-26 at 3 09 21 PM" src="https://github.com/user-attachments/assets/0f487a89-8c66-4845-9067-a51fd43f55cd" />
 
 5. Create a folder called Jar files for "Name of Project Files" from src folder 
