@@ -99,8 +99,6 @@ File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 9. Then create a folder called "Jar files for <Project Name>" for the highlighted jar files:
 
-<img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
-
 10. Find the from the javafx-sdk: 23.0.1 folder(the example has 23.0.1 2 due to having javafx-sdk: 23.0.1 folders) to the folder "Jar files for the project":
 <img width="535" alt="Screenshot 2025-02-26 at 3 59 35 PM" src="https://github.com/user-attachments/assets/66678913-6461-4712-a853-98239b046b76" />
 
