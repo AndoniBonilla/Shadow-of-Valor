@@ -84,6 +84,7 @@ File: eclipse-java-2024-12-R-linux-gtk-x86_64.tar.gz
 File: eclipse-java-2024-12-R-linux-gtk-aarch64.tar.gz
 
 -Download riscv64 for RISC-V 64-bit processors 
+
 File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 3. Open a new Java Project
