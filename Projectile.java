@@ -1,126 +1,98 @@
 package FightingGame;
- 
 
-import javafx.scene.Node;    
-//A container that organizes and displays multiple `Node` elements in a 2D layout.
+import java.util.ArrayList;       
+//Allows traversal of collections while enabling safe removal of elements during iteration.
+import java.util.List;
 
-import javafx.scene.shape.Circle;
-//Represents a circular shape, often used for rendering projectiles, characters' heads, or other circular objects in the game.
+import javafx.application.Platform;
 
-
-public class Projectile 
+/**
+ * Manages the lifecycle of projectiles in the game, including movement, collisions, and visual updates.
+ */
+public class ProjectileManager 
 {
-    private Circle sprite; // Visual representation of the projectile as a circle.
-    private double speed; // Speed at which the projectile moves.
-    private double directionX; // Normalized X-direction of movement.
-    private double directionY; // Normalized Y-direction of movement.
-    private Character owner; // Reference to the character that launched the projectile.
-    double size; // Size (radius) of the projectile.
-    
+
+    private static final int MAX_PROJECTILES_PER_PLAYER = 6; 
+    // Maximum number of active projectiles allowed.
+
+    private static final List<Projectile> activeProjectiles = new ArrayList<>(); 
+    // Tracks all active projectiles in the game.
+
     /**
-     * Constructs a new Projectile.
-     *
-     * @param owner          The character launching the projectile.
-     * @param startX         The starting X-coordinate of the projectile.
-     * @param startY         The starting Y-coordinate of the projectile.
-     * @param targetX        The target X-coordinate for the projectile.
-     * @param targetY        The target Y-coordinate for the projectile.
-     * @param size           The size (radius) of the projectile.
-     * @param chargeDuration The duration of the button press, used to calculate size and speed.
+     * Adds a projectile to the scene and tracks it.
+     * @param projectile The projectile to be added.
      */
-    
     /**
-     * Constructs a new Projectile object and initializes its properties.
-     * The projectile is assigned an owner, speed, size, and a calculated trajectory.
-     * It is also given a graphical representation (a circle) and a movement direction.
+     * Adds a new projectile to the game while ensuring that the player does not exceed 
+     * the maximum allowed number of active projectiles.
+     * This method also updates the game UI to display the projectile.
      *
-     * @param owner          The character who launched the projectile.
-     * @param startX         The starting X-coordinate of the projectile.
-     * @param startY         The starting Y-coordinate of the projectile.
-     * @param targetX        The X-coordinate the projectile is moving toward.
-     * @param targetY        The Y-coordinate the projectile is moving toward.
-     * @param size           The radius (size) of the projectile.
-     * @param chargeDuration The amount of time the projectile was charged, affecting its speed.
+     * @param projectile The projectile to be added to the game.
      */
-    public Projectile(Character owner, double startX, double startY, double targetX, double targetY, double size, double chargeDuration) 
+    public static void addProjectile(Projectile projectile) 
     {
-        // Ensure that the projectile has a valid owner (prevents null references)
+        // Retrieve the character that launched the projectile
+        Character owner = projectile.getOwner();
+
+        // Ensure the projectile has a valid owner before adding it to the game
         if (owner == null) 
         {
-            throw new IllegalArgumentException("Error: Owner cannot be null when creating a projectile.");
+            System.err.println("Projectile owner is null. Cannot add projectile.");
+            return; // Exit early to prevent errors
         }
 
-        // Assign owner reference
-        this.owner = owner;
+        // Count the number of active projectiles currently owned by this character
+        long ownerProjectileCount = activeProjectiles.stream()
+            .filter(p -> p.getOwner() == owner)
+            .count();
 
-        // Assign projectile size
-        this.size = size;
+        // Enforce the maximum number of projectiles per player to prevent spam
+        if (ownerProjectileCount >= MAX_PROJECTILES_PER_PLAYER) 
+        {
+            System.out.println(owner.getName() + " cannot launch more than " 
+                + MAX_PROJECTILES_PER_PLAYER + " projectiles."); // Debug statement
+            return; // Exit early if limit is reached
+        }
 
-        // Calculate and assign the projectile's speed based on charge duration
-        this.speed = calculateSpeed(chargeDuration);
+        // Synchronize access to the projectile list to prevent concurrency issues
+        synchronized (activeProjectiles) 
+        {
+            activeProjectiles.add(projectile); // Add the projectile to the active list
+        }
 
-
-
-        // Create a circular visual representation (sprite) for the projectile
-        this.sprite = new Circle(size);  
-        this.sprite.setFill(owner.getColor()); // Set the projectile's color to match the owner
-        this.sprite.setLayoutX(startX); // Set initial X position
-        this.sprite.setLayoutY(startY); // Set initial Y position
-
-        // Calculate the distance to the target position for direction normalization
-        double distance = Math.sqrt(Math.pow(targetX - startX, 2) + Math.pow(targetY - startY, 2));
-
-        // Determine the direction vector by normalizing the movement of the projectile
-        this.directionX = (targetX - startX) / distance;
-        this.directionY = (targetY - startY) / distance;
+        // Add the projectile's visual representation to the game UI safely
+        Platform.runLater(() -> GameApp.root.getChildren().add(projectile.getSprite()));
     }
 
-
     /**
-     * Calculates the speed of the projectile based on the charge duration.
+     * Removes a projectile from the game, both from the active list and the UI.
+     * This ensures that projectiles do not linger after being destroyed or leaving the screen.
      *
-     * @param chargeDuration The duration the projectile is charged.
-     * @return The calculated speed.
+     * @param projectile The projectile to be removed from the game.
      */
-    public double calculateSpeed(double chargeDuration) 
+    static void removeProjectile(Projectile projectile) 
     {
-        double baseSpeed = 85.0; // base speed
-        double calculatedSpeed = baseSpeed + (chargeDuration / 300.0); // Calculation of the speed of the projectile based on charge duration
-        return Math.min(calculatedSpeed, 200.0); // Cap the speed at 200.0
+        // Remove the projectile from the active list
+        activeProjectiles.remove(projectile); 
+
+        // Ensure the projectile is removed from the game UI safely using the JavaFX thread
+        Platform.runLater(() ->
+        {
+            GameApp.root.getChildren().remove(projectile.getSprite());
+        });
     }
 
     /**
-     * Updates the position of the projectile based on the elapsed time.
-     *
-     * @param deltaTime Time elapsed since the last update.
+     * Retrieves the current list of active projectiles.
+     * 
+     * @return A list containing all active projectiles in the game.
      */
-    public void updatePosition(double deltaTime) 
+    public static List<Projectile> getActiveProjectiles()
     {
-        double distanceX = directionX * speed * deltaTime;
-        double distanceY = directionY * speed * deltaTime;
+         
 
-        sprite.setLayoutX(sprite.getLayoutX() + distanceX);
-        sprite.setLayoutY(sprite.getLayoutY() + distanceY);
+        return activeProjectiles; // Return the list of active projectiles.
+        
     }
-
-    /**
-     * Retrieves the sprite (visual representation) of the projectile.
-     *
-     * @return The sprite as a Node object.
-     */
-    public Node getSprite() 
-    {
-        return this.sprite; // Return the sprite associated with this projectile
-    }  
-
-    /**
-     * Retrieves the owner (character that launched the projectile) of the projectile.
-     *
-     * @return The owner character of the projectile.
-     */   
-    public Character getOwner() 
-    {
-        return owner; // Return the reference to the character that launched the projectile
-    }
-
-}
+    
+} 
