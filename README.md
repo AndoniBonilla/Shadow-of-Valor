@@ -58,27 +58,32 @@ Download: This download is the JavaFX documentation in a compressed format.
 File: javafx-javadoc-23.0.1.zip
 
 ### Steps to Run 
-1. Download Eclipse 
-2. Open a new Java Project
-3. Make a package
-4. Create the classes: 
-5. Connect your project files to this package
-6. Go to Build Path < Configure Build Path< Add External JARs 
-7. Downlad the following jar files for javaFX(this should be found from the download from Gluon):
+1. Download Eclipse IDE for Java Developers
+<img width="830" alt="Screenshot 2025-02-26 at 2 22 05 PM" src="https://github.com/user-attachments/assets/90ee2ab2-d483-4c41-a5d9-c556ff1f7b25" />
+- Download x86_64 for macOS computers with Intel processors 
+File: eclipse-java-2024-12-R-macosx-cocoa-x86_64.dmg
+- Download AArch64 for macOS computers with M1 and M2 chips
+File: eclipse-java-2024-12-R-macosx-cocoa-aarch64.dmg
+3. Open a new Java Project
+4. Make a package
+5. Create the classes: 
+6. Connect your project files to this package
+7. Go to Build Path < Configure Build Path< Add External JARs 
+8. Downlad the following jar files for javaFX(this should be found from the download from Gluon):
 <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
 
-8. This is found in the lib folder on your javafx-sdk 23.01.
-9. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
+9. This is found in the lib folder on your javafx-sdk 23.01.
+10. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
 
-10. Select the files seen in step 6:
+11. Select the files seen in step 6:
 <img width="1302" alt="Screenshot 2025-02-01 at 4 15 13 PM" src="https://github.com/user-attachments/assets/3d171111-461c-4757-a0ab-efb814dbe394" />
 
-11. In eclipse go to the Run drop down and find the Run configurations.
-12. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
-13. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
-14. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
+12. In eclipse go to the Run drop down and find the Run configurations.
+13. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
+14. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
+15. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
 
-15. Press Apply and then run
+16. Press Apply and then run
 
 Preferably use Eclipse(I don't have knowledge of other IDE's)
 Another way(might work, might not) 
