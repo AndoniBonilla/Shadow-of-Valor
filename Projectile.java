@@ -1,14 +1,9 @@
 package FightingGame;
  
-import javafx.geometry.Bounds;    
-//Represents the bounding box of a node in the JavaFX scene graph.  
-//Useful for detecting collisions and determining positioning.
-import javafx.scene.Node;
-//A base class for all visual elements in the JavaFX scene graph.
-//Represents UI components like sprites, projectiles, or character elements.
-import javafx.scene.layout.Pane;
+
+import javafx.scene.Node;    
 //A container that organizes and displays multiple `Node` elements in a 2D layout.
-//Commonly used as the root container for the game scene.
+
 import javafx.scene.shape.Circle;
 //Represents a circular shape, often used for rendering projectiles, characters' heads, or other circular objects in the game.
 
@@ -21,12 +16,7 @@ public class Projectile
     private double directionY; // Normalized Y-direction of movement.
     private Character owner; // Reference to the character that launched the projectile.
     double size; // Size (radius) of the projectile.
-    private double damage; // Stores the calculated damage of the projectile.
-    private double targetX; // Target X-coordinate for the projectile.
-    private double targetY; // Target Y-coordinate for the projectile.
-    private double startX; // Starting X-coordinate of the projectile.
-    private double startY; // Starting Y-coordinate of the projectile.
-
+    
     /**
      * Constructs a new Projectile.
      *
@@ -38,84 +28,53 @@ public class Projectile
      * @param size           The size (radius) of the projectile.
      * @param chargeDuration The duration of the button press, used to calculate size and speed.
      */
+    
+    /**
+     * Constructs a new Projectile object and initializes its properties.
+     * The projectile is assigned an owner, speed, size, and a calculated trajectory.
+     * It is also given a graphical representation (a circle) and a movement direction.
+     *
+     * @param owner          The character who launched the projectile.
+     * @param startX         The starting X-coordinate of the projectile.
+     * @param startY         The starting Y-coordinate of the projectile.
+     * @param targetX        The X-coordinate the projectile is moving toward.
+     * @param targetY        The Y-coordinate the projectile is moving toward.
+     * @param size           The radius (size) of the projectile.
+     * @param chargeDuration The amount of time the projectile was charged, affecting its speed.
+     */
     public Projectile(Character owner, double startX, double startY, double targetX, double targetY, double size, double chargeDuration) 
     {
+        // Ensure that the projectile has a valid owner (prevents null references)
         if (owner == null) 
         {
             throw new IllegalArgumentException("Error: Owner cannot be null when creating a projectile.");
         }
+
+        // Assign owner reference
         this.owner = owner;
-        this.startX = startX;
-        this.startY = startY;
-        this.targetX = targetX;
-        this.targetY = targetY;
 
+        // Assign projectile size
         this.size = size;
+
+        // Calculate and assign the projectile's speed based on charge duration
         this.speed = calculateSpeed(chargeDuration);
-        this.damage = calculateDamage();
 
-        // Initialize the sprite as a circle with a given size and color.
-        this.sprite = new Circle(size);
-        this.sprite.setFill(owner.getColor());
-        this.sprite.setLayoutX(startX);
-        this.sprite.setLayoutY(startY);
 
-        // Calculate normalized direction vector for movement.
+
+        // Create a circular visual representation (sprite) for the projectile
+        this.sprite = new Circle(size);  
+        this.sprite.setFill(owner.getColor()); // Set the projectile's color to match the owner
+        this.sprite.setLayoutX(startX); // Set initial X position
+        this.sprite.setLayoutY(startY); // Set initial Y position
+
+        // Calculate the distance to the target position for direction normalization
         double distance = Math.sqrt(Math.pow(targetX - startX, 2) + Math.pow(targetY - startY, 2));
+
+        // Determine the direction vector by normalizing the movement of the projectile
         this.directionX = (targetX - startX) / distance;
         this.directionY = (targetY - startY) / distance;
-      
     }
 
-    /**
-     * Moves the projectile based on its speed and direction.
-     */
-    public void move()
-    {
-        double deltaX = targetX - startX;
-        double deltaY = targetY - startY;
-        double magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-        double moveX = (deltaX / magnitude) * speed;
-        double moveY = (deltaY / magnitude) * speed;
-
-        sprite.setLayoutX(sprite.getLayoutX() + moveX);
-        sprite.setLayoutY(sprite.getLayoutY() + moveY);
-    }
-
-    /**
-     * Checks if the projectile is still within the game boundaries.
-     *
-     * @return True if the projectile is within bounds, otherwise false.
-     */
-    public boolean isInBounds() 
-    {
-        double x = this.sprite.getLayoutX();
-        double y = this.sprite.getLayoutY();
-        return x >= GameApp.BOUNDARY_LEFT && x <= GameApp.BOUNDARY_RIGHT
-                && y >= GameApp.BOUNDARY_TOP && y <= GameApp.BOUNDARY_BOTTOM;
-    }
-
-    /**
-     * Handles the logic when the projectile hits a character.
-     *
-     * @param target The character hit by the projectile.
-     */
-    public void onHit(Character target) 
-    {
-        // Apply damage and effects to the target.
-        double damage = this.calculateDamage();
-        System.out.println("Projectile dealt " + damage + " damage to " + target.getName());
-        target.takeDamage(damage, this);
-
-        // Mark the projectile as hit and remove it from the game.
-        this.hit();
-        Pane root = (Pane) this.sprite.getParent();
-        if (root != null) {
-            root.getChildren().remove(this.sprite);
-        }
-        ProjectileManager.removeFromActiveProjectiles(this);
-    }
 
     /**
      * Calculates the speed of the projectile based on the charge duration.
@@ -125,29 +84,9 @@ public class Projectile
      */
     public double calculateSpeed(double chargeDuration) 
     {
-        double baseSpeed = 85.0;
-        double calculatedSpeed = baseSpeed + (chargeDuration / 300.0);
+        double baseSpeed = 85.0; // base speed
+        double calculatedSpeed = baseSpeed + (chargeDuration / 300.0); // Calculation of the speed of the projectile based on charge duration
         return Math.min(calculatedSpeed, 200.0); // Cap the speed at 200.0
-    }
-
-    /**
-     * Calculates the damage of the projectile based on its size and speed.
-     *
-     * @return The calculated damage value.
-     */
-    public double calculateDamage()
-    {
-        double baseDamage = 5.0; // Minimum damage.
-        double sizeMultiplier = size / 10.0; // Scale with projectile size.
-        double speedMultiplier = speed / 10.0; // Scale with projectile speed.
-        double ownerAttackPower = owner.getAttackPower(); // Owner's attack power.
-
-        // Include target's defense reduction if available.
-        Character target = owner.getOpponent();
-        double targetDefense = target != null ? target.getDefensePower() * target.getDefenseMultiplier() : 0;
-
-        // Calculate the final damage value.
-        return baseDamage + (ownerAttackPower * sizeMultiplier * speedMultiplier) - (targetDefense * 0.5);
     }
 
     /**
@@ -165,49 +104,6 @@ public class Projectile
     }
 
     /**
-     * Checks for collisions between this projectile and another projectile.
-     *
-     * @param other The other projectile to check collision against.
-     * @return True if a collision is detected, otherwise false.
-     */
-    public boolean collidesWith(Projectile other)
-    {
-        if (this.getSprite() == null || other.getSprite() == null)
-        {
-            System.out.println("Collision check failed: one or both sprites are null.");
-            return false;
-        }
-
-        double dx = this.getSprite().getLayoutX() - other.getSprite().getLayoutX();
-        double dy = this.getSprite().getLayoutY() - other.getSprite().getLayoutY();
-        double distance = Math.sqrt(dx * dx + dy * dy);
-        double collisionDistance = (this.getSize() + other.getSize()) / 2;
-
-        System.out.printf("Collision Check -> Distance: %.2f, Collision Distance: %.2f%n", distance, collisionDistance);
-
-        return distance < collisionDistance;
-    }
-
-    /**
-     * Marks the projectile as hit, indicating it should no longer interact with other objects.
-     * This is used during collision handling.
-     */
-    public void hit() 
-    {
-        System.out.println("Projectile hit!"); // Log that the projectile has been hit
-    }
-
-    /**
-     * Retrieves the size (radius) of the projectile.
-     *
-     * @return The size of the projectile.
-     */
-    public double getSize() 
-    {
-        return this.size; // Return the projectile's size attribute
-    }
-
-    /**
      * Retrieves the sprite (visual representation) of the projectile.
      *
      * @return The sprite as a Node object.
@@ -218,40 +114,13 @@ public class Projectile
     }  
 
     /**
-     * Retrieves the calculated damage value of the projectile.
-     *
-     * @return The damage dealt by the projectile.
-     */
-    public double getDamage() 
-    {
-        return this.damage; // Return the damage value of the projectile
-    }
-
-    /**
      * Retrieves the owner (character that launched the projectile) of the projectile.
      *
      * @return The owner character of the projectile.
-     */
-    
+     */   
     public Character getOwner() 
     {
         return owner; // Return the reference to the character that launched the projectile
     }
 
-    /**
-     * Retrieves the bounds of the projectile's sprite in the game scene.
-     * This is used for collision detection.
-     *
-     * @return The bounds of the projectile's sprite or null if the sprite is not initialized.
-     */
-    public Bounds getBounds() 
-    {
-        if (sprite != null) 
-        { // Check if the sprite exists
-            return sprite.getBoundsInParent(); // Return the bounds of the sprite
-        }
-        return null; // Return null if the sprite is not initialized
-    }
-
-    
 }
