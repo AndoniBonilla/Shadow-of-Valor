@@ -1,7 +1,7 @@
 package FightingGame;
 // Defines the `FightingGame` package. Groups related game files, such as `Character` and `GameApp`.
 
-import javafx.animation.KeyFrame;
+import javafx.animation.KeyFrame;     
 // Represents a single frame in an animation timeline.
 import javafx.animation.Timeline;
 // Used for creating animations that cycle through multiple `KeyFrame` objects.
@@ -28,7 +28,7 @@ public class Character
     private String name; // Name of the character (e.g., "Blaze", "Aqua").
     private String specialAbilityName; // Name of the character's special active ability.
     private Color color; // Primary color of the character for visual differentiation.
-    private Timeline shieldPulseAnimation;
+    private Timeline shieldPulseAnimation; // Animates the character’s shield effect, making it pulse when active.
 
     private Character opponent; // Reference to the character's current opponent.
     private Character owner; // Tracks the entity controlling the character or launching a projectile.
@@ -59,7 +59,6 @@ public class Character
     private double startY; // Starting Y-coordinate for projectile launches
     private double targetX; // Target X-coordinate for projectiles or abilities.
     private double targetY; // Target Y-coordinate for projectiles or abilities.
-    private double defenseMultiplier = 1.0; // Multiplier for adjusting defense power.
     
     private double movementSpeed = 3.0; // Default movement speed.
 
@@ -68,7 +67,7 @@ public class Character
     private long chargingStartTime = -1; // Tracks when projectile charging began.
     private long specialAbilityCooldown; // Cooldown duration for special abilities in milliseconds.
 
-    private static final long SHIELD_COOLDOWN = 5000; // Cooldown for reactivating the shield.
+    private static final long SHIELD_COOLDOWN = 5000; // Cooldown for reactivating the shield after the shield breaks.
     private static long ATTACK_DELAY_MS = 500; // Wind-up time for attacks in milliseconds.
     private static long END_LAG_MS = 1350; // Recovery lag after attacks in milliseconds.
     private static final double SHIELD_REGEN_RATE = 0.0035; // Rate of shield regeneration per frame.
@@ -84,9 +83,9 @@ public class Character
  // - `startX` and `startY`: The starting coordinates of the projectile.
  // - `targetX` and `targetY`: The target coordinates the projectile will travel toward.
  // - `chargeDuration`: The time the projectile has been charged, which affects size and speed.
- // - `defenseMultiplier`: Adjusts the projectile's damage reduction or effect based on the character's defense.
+ // - `defensePowwer`: Adjusts the projectile's damage reduction or effect based on the character's defense.
     
-    Projectile projectile = new Projectile(this, startX, startY, targetX, targetY, chargeDuration, defenseMultiplier);
+    Projectile projectile = new Projectile(this, startX, startY, targetX, targetY, chargeDuration, defensePower);
  
 
     public Character(String name, int maxHealth, int attackPower, int defensePower, String specialAbilityName, Color color, int x, int y)
@@ -407,8 +406,8 @@ public class Character
         chargingStartTime = -1; // Reset the charging state
         isCharging = false; // Mark charging as complete
 
-        // Dynamically calculate the size and speed of the projectile
-        double speed = Math.max(5.0, 10.0 - chargeDuration / 500.0); // Minimum speed = 5.0
+        // Dynamically calculate the size of the projectile
+
         double size = Math.min(10.0 + chargeDuration / 100.0, 50.0); // Maximum size = 50.0
 
         // Create the projectile with calculated properties
@@ -430,7 +429,7 @@ public class Character
         
     }
 
- // Updates the shield state, including regeneration and depletion.
+ // Updates the shield state, includ`ing regeneration and depletion.
     public void updateShieldState(long currentTime) 
     {
         // Ensure the shield bar is initialized before performing operations.
@@ -548,7 +547,7 @@ public class Character
      * @param opponent The opponent character being attacked.
      */
     public void performAttack(Character opponent) 
-    {
+    {	
         if (isDisabled) 
         { // Prevent attacks if the character is stunned or disabled.
             System.out.println(name + " is stunned and cannot attack!");
@@ -632,7 +631,7 @@ public class Character
         }
 
      // Calculate the reduction in damage based on the target's defense and defense multiplier
-        double defenseReduction = target.getDefensePower() * target.getDefenseMultiplier(); 
+        double defenseReduction = target.getDefensePower();
 
         // Ensure that the final damage is at least 18, even if the defense is higher than the base damage
         int finalDamage = Math.max(18, baseDamage - (int) defenseReduction); 
@@ -675,88 +674,88 @@ public class Character
 
 
     /**
-     * Handles damage taken by the character, considering shield logic.
+     * Applies damage to the character, considering shield mechanics.
+     * If the shield is active, it absorbs some or all of the damage.
+     * If the shield is depleted, the damage is applied to health.
+     * If health reaches zero, the character is defeated.
      *
-     * @param damage The amount of damage to apply.
-     * @param projectile The projectile causing the damage (optional).
+     * @param damage     The amount of damage to be applied.
+     * @param projectile The projectile that caused the damage (can be null for other damage sources).
      */
     public void takeDamage(double damage, Projectile projectile) 
     {
+        // Check if the shield is active
         if (isShieldActive) 
-        { // If the shield is active, reduce shield strength.
-            double shieldReductionFactor = 1.0; // 
+        { 
+            // Define the factor by which the shield reduces incoming damage
+            double shieldReductionFactor = 1.0;  
+            
+            // Calculate the amount of damage absorbed by the shield
             double shieldDamage = damage * shieldReductionFactor;
 
-            shieldLevel -= shieldDamage / 100.0; // Reduce shield level.
+            // Reduce the shield level by the absorbed damage (converted to a percentage)
+            shieldLevel -= shieldDamage / 100.0;
 
-            if (shieldLevel <= 0)
-            { // If the shield breaks, deactivate it.
-                shieldLevel = 0;
-                deactivateShield();
-                System.out.println(name + "'s shield is broken!");
+            // If the shield is completely depleted, deactivate it
+            if (shieldLevel <= 0) 
+            { 
+                shieldLevel = 0; // Ensure shield level doesn't go negative
+                deactivateShield(); // Disable the shield effect
+                System.out.println(name + "'s shield is broken!"); // Log shield break event
             } 
             else 
             {
-                System.out.println(name + "'s shield absorbed " + shieldDamage + " damage. Remaining shield: " + (shieldLevel * 100) + "");
+                // Log the amount of damage absorbed by the shield
+                System.out.println(name + "'s shield absorbed " + shieldDamage 
+                    + " damage. Remaining shield: " + (shieldLevel * 100) + "%");
             }
-            return; // Skip health damage if the shield is active.
-        }
 
-        health = Math.max(0, health - damage); // Reduce health if the shield is inactive.
-        System.out.println(name + " took " + damage + " damage. Remaining health: " + health);
-
-        if (health <= 0)
-        {
-            System.out.println(name + " has been defeated!"); // Log defeat if health reaches zero.
-        }
-    }
-
-    /**
-     * Executes the character's special ability.
-     *
-     * @param opponent The opponent affected by the special ability.
-     */
-    public void performSpecialAbility(Character opponent) 
-    {
-        if (canUseSpecialAbility())
-        { // Check if the special ability is ready.
-            System.out.println(name + " is using their special ability: " + specialAbilityName);
-            AbilityManager.executeAbility(this, opponent); // Call AbilityManager to execute the ability.
-            lastSpecialUsedTime = System.currentTimeMillis(); // Update the last used time.
-        } 
-        else 
-        {
-            long timeRemaining = (specialAbilityCooldown - (System.currentTimeMillis() - lastSpecialUsedTime)) / 1000;
-            System.out.println(name + "'s special ability is on cooldown! Cooldown time remaining: " + timeRemaining + " seconds.");
-        }
-    }
-
-    /**
-     * Reduces the character's health by a specified amount.
-     *
-     * @param actualDamage The damage to apply to the character's health.
-     */
-    public void reduceHealth(double actualDamage) 
-    {
-        if (actualDamage < 0) 
-        { // Ensure the damage is not negative.
-            System.out.println("Invalid damage amount. Damage cannot be negative."); // Log error.
+            // Exit the method early since shield absorption prevents health damage
             return;
         }
 
-        this.health -= actualDamage; // Deduct damage from health.
+        // Apply damage directly to health if the shield is inactive
+        health = Math.max(0, health - damage); // Ensure health does not go below zero
 
-        if (this.health < 0)  // Prevent health from dropping below zero.
+        // Log the damage taken and the remaining health
+        System.out.println(name + " took " + damage + " damage. Remaining health: " + health);
+
+        // Check if the character has been defeated
+        if (health <= 0)
         {
-            this.health = 0;
+            System.out.println(name + " has been defeated!"); // Log the defeat event
         }
+    }
 
-        System.out.println(name + " took " + actualDamage + " damage. Remaining health: " + this.health); // Log health status.
+    /**
+     * Executes the character's special ability if it is off cooldown.
+     * Each character has a unique special ability, which is handled by the AbilityManager.
+     * If the ability is on cooldown, the remaining cooldown time is displayed.
+     *
+     * @param opponent The opponent who may be affected by the special ability.
+     */
+    public void performSpecialAbility(Character opponent) 
+    {
+        // Check if the character's special ability is available for use
+        if (canUseSpecialAbility()) 
+        { 
+            // Log that the special ability is being activated
+            System.out.println(name + " is using their special ability: " + specialAbilityName);
+            
+            // Execute the special ability logic, which is managed by the AbilityManager
+            AbilityManager.executeAbility(this, opponent);
 
-        if (this.health == 0) 
-        { // Check if the character is defeated.
-            System.out.println(name + " has been defeated!"); // Log defeat.
-            this.isDisabled = true; // Disable character actions.
+            // Record the time when the ability was used to enforce cooldown
+            lastSpecialUsedTime = System.currentTimeMillis();
+        } 
+        else 
+        {
+            // Calculate the remaining cooldown time in seconds
+            long timeRemaining = (specialAbilityCooldown - (System.currentTimeMillis() - lastSpecialUsedTime)) / 1000;
+            
+            // Inform the player that the ability is still on cooldown
+            System.out.println(name + "'s special ability is on cooldown! Cooldown time remaining: " 
+                                + timeRemaining + " seconds.");
         }
     }
 
@@ -773,7 +772,6 @@ public class Character
    
     /**
      * Sets the stunned state for the character.
-     *
      * @param stunned Whether the character is stunned.
      */
     public void setStunned(boolean stunned) 
@@ -822,15 +820,6 @@ public class Character
         }
     }
 
-    /**
-     * Retrieves the character's current defense multiplier.
-     *
-     * @return The defense multiplier.
-     */
-    public double getDefenseMultiplier() 
-    {
-        return defenseMultiplier; // Return the defense multiplier.
-    }
   
     /**
      * Sets the cooldown for the character's special ability.
@@ -846,12 +835,6 @@ public class Character
         this.lastSpecialUsedTime = System.currentTimeMillis();
     }
 
-    public void setAbilityReadyVisual()
-    {
-        if (characterSprite != null)
-        { // Check if the sprite exists
-            characterSprite.setOpacity(1.0); // Restore the sprite's opacity
-        }
-    }
+    
 
 }
