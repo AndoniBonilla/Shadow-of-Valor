@@ -1,54 +1,18 @@
 package FightingGame;
 
 // Import statements for required utilities and libraries 
-import java.util.HashMap; // Used for storing ability cooldowns    
-import javafx.application.Platform; // Used for updating JavaFX UI components
+import javafx.application.Platform; // Used for updating JavaFX UI components 
 
 //Main class responsible for managing special abilities in the game
 
 public class AbilityManager 
 
 {
-	private static final HashMap<String, Integer> abilityCooldowns = new HashMap<>();// A HashMap to store the cooldown durations for various abilities (in milliseconds)
 
-  
-	static // Static block to initialize ability cooldowns when the class is first loaded
-	{ 
-        abilityCooldowns.put("flame rush", 10000); // Cooldown of 10 seconds
-        abilityCooldowns.put("speed surge", 12000); // Cooldown of 9 seconds
-        abilityCooldowns.put("electric burst", 9000); // Cooldown of 9 seconds
-        abilityCooldowns.put("blazing punch", 9000); // Cooldown of 9 seconds
-        abilityCooldowns.put("shadow step", 10000); // Cooldown of 5 seconds
-        abilityCooldowns.put("nature's embrace", 15000); // Cooldown of 15 seconds
-        abilityCooldowns.put("shadow strike", 13000); // Cooldown of 11 seconds
-        abilityCooldowns.put("earthquake", 16000); // Cooldown of 10 seconds
-    }
 	
-	 /**
-     * Retrieves the cooldown duration for a given ability by its name.
-     * If the ability name is not found, a default cooldown of 5000 ms is returned.
-     *
-     * @param abilityName The name of the ability to check
-     * @return Cooldown duration in milliseconds
-     */
-	
-
-	/**
-	 * Retrieves the cooldown time for a given ability.
-	 *
-	 * @param abilityName The name of the ability (case-insensitive).
-	 * @return The cooldown time in milliseconds. If the ability is not found, returns the default cooldown of 5000ms.
-	 */
-	public static int getCooldown(String abilityName) 
-	{
-	    // Converts the ability name to lowercase to ensure case-insensitive lookup.
-	    // Uses `getOrDefault` to return the cooldown value if the ability exists,
-	    // otherwise defaults to 5000 milliseconds.
-	    return abilityCooldowns.getOrDefault(abilityName.toLowerCase(), 5000);
-	}
 
     /**
-     * Executes the special ability of the given user and applies its effects
+     * Exe cutes the special ability of the given user and applies its effects
      * to the opponent or the user itself based on the ability.
      *
      * @param user The character using the ability
