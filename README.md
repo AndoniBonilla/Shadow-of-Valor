@@ -59,15 +59,31 @@ File: javafx-javadoc-23.0.1.zip
 
 ### Steps to Run 
 1. Download Eclipse IDE for Java Developers
-<img width="830" alt="Screenshot 2025-02-26 at 2 22 05 PM" src="https://github.com/user-attachments/assets/90ee2ab2-d483-4c41-a5d9-c556ff1f7b25" />
 
+<img width="830" alt="Screenshot 2025-02-26 at 2 22 05 PM" src="https://github.com/user-attachments/assets/90ee2ab2-d483-4c41-a5d9-c556ff1f7b25" />
+Windows:
+- Download x86_64 for window computers with a 64-bit Intel and AMD processors 
+File: eclipse-java-2024-12-R-win32-x86_64.zip
+
+- Download AARch 64 for windows on ARM(WoA) devices like Mircosoft Surface Pro or other based Windows systems.
+File: eclipse-java-2024-12-R-win32-aarch64.zip
+
+MacOS:
 - Download x86_64 for macOS computers with Intel processors
-  
 File: eclipse-java-2024-12-R-macosx-cocoa-x86_64.dmg
 
 - Download AArch64 for macOS computers with M1 and M2 chips
-
 File: eclipse-java-2024-12-R-macosx-cocoa-aarch64.dmg
+
+Linux: 
+- Download x86_64 for Linux computers is used for 64 bit Intel and AMD processorrs
+File: eclipse-java-2024-12-R-linux-gtk-x86_64.tar.gz
+
+- Download AArch64 for ARM-based Linux systems such as Raspberry PI or ARM servers
+File: eclipse-java-2024-12-R-linux-gtk-aarch64.tar.gz
+
+-Download riscv64 for RISC-V 64-bit processors 
+File: eclipse-java-2024-12-R-linux-gtk-riscv64.tar.gz
 
 3. Open a new Java Project
 
