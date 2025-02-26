@@ -1,7 +1,7 @@
 package FightingGame;
 
 // Import JavaFX classes for layout and UI elements
-import javafx.geometry.Pos; // For aligning elements within layouts   
+import javafx.geometry.Pos; // For aligning elements within layouts       
 import javafx.scene.Scene; // Represents a JavaFX scene
 import javafx.scene.control.Button; // Button control for user interaction
 import javafx.scene.control.Label; // Label control for displaying text
@@ -11,7 +11,7 @@ import javafx.scene.layout.VBox; // A vertical box layout
 
 import java.util.List; // List interface for managing characters
 import java.util.function.BiConsumer; // Functional interface for handling two inputs (player1, player2)
-
+ 
 /**
  * This class represents the character selection screen in the game.
  * Players can select characters, view their passive abilities, and mark readiness.
@@ -39,10 +39,7 @@ public class CharacterSelectScreen
         this.onReady = onReady;
     }
 
-    /**
-     * Builds and returns the scene for the character selection screen.
-     * @return A Scene object containing the UI for character selection.
-     */
+ 
     /**
      * Builds and returns the character selection screen as a JavaFX `Scene`.
      * The scene includes:
@@ -79,18 +76,18 @@ public class CharacterSelectScreen
             Button characterButton = new Button(character.getName()); // Button labeled with the character's name
             characterButton.setOnAction(e -> selectCharacter(character)); // Assign an action to handle selection
 
-            // Label to display the character's passive ability
-            Label passiveLabel = new Label(); // Label showing the passive
-            passiveLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: gray;"); // Set font size and color for the label
+            // Label to display the game's characters
+            Label newLabel = new Label(); // Label showing the passive
+            newLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: gray;"); // Set font size and color for the label
 
             // Add the button and label to the character's vertical box
-            characterBox.getChildren().addAll(characterButton, passiveLabel);
+            characterBox.getChildren().addAll(characterButton, newLabel);
 
             // Add the character box to the grid (arranged in rows of 4)
             characterGrid.add(characterBox, i % 4, i / 4); // Columns determined by index mod 4
         }
 
-        // Player 1 controls
+        // Player 1 selection 
         player1Selection = new Label("Player 1: Not selected"); // Label showing Player 1's selection status
         player1ReadyButton = new Button("Player 1 Ready"); // Button to mark Player 1 as ready
         player1ReadyButton.setDisable(true); // Initially disabled until a character is selected
@@ -112,11 +109,11 @@ public class CharacterSelectScreen
             }
         });
 
-        // Layout for Player 1's controls
+        // Layout for Player 1
         VBox player1Controls = new VBox(10, player1Selection, player1ReadyButton, player1DeselectButton);
         player1Controls.setAlignment(Pos.CENTER); // Center-align Player 1's controls
 
-        // Player 2 controls
+        // Button to allow Player 2 to select a different character 
         player2Selection = new Label("Player 2: Not selected"); // Label showing Player 2's selection status
         player2ReadyButton = new Button("Player 2 Ready"); // Button to mark Player 2 as ready
         player2ReadyButton.setDisable(true); // Initially disabled until a character is selected
