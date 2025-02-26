@@ -12,9 +12,9 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
 - Single Round matches with win/loss conditions
 - Intallation/Setup
   
-- Java 22.01
+- Java 22.0.2
   
-- JavaFX 23.01 (Make sure you have the correct JavaFX SDK based on your system)
+- JavaFX 23.0.1 (Zip file linked) 
   
 - Downlad JavaFX 23.01 from Gloun
   
@@ -22,13 +22,13 @@ This game is a 1v1 based fighting game with a pixelated logo, character move lis
   
 - <img width="1208" alt="Screenshot 2025-02-01 at 4 11 09 PM" src="https://github.com/user-attachments/assets/0fd80669-98eb-4203-b206-e60f8d392f37" />
 1. macOS (x64) SDK
-Download: This version is suitable for macOS computers with Intel processors (64-bit architecture). If you have a Mac with an Intel-based processor (like a MacBook Pro with Intel Core i7), they should download this version.
+Download: This version is suitable for macOS computers with Intel processors (64-bit architecture). If you have a Mac with an Intel-based processor (like a MacBook Pro with Intel Core i7), you should download this version.
 File: javafx-sdk-23.0.1_macos-x64_sdk.zip
 Use: This download contains the full JavaFX SDK, which includes the libraries and documentation required to run JavaFX applications.
 2. macOS (x64) jmods
 Download: This version is for macOS systems with Intel processors (64-bit architecture) but includes JMOD files instead of the SDK. JMOD files are typically used for modular development and are more focused on advanced JavaFX usage.
 File: javafx-sdk-23.0.1_macos-x64_jmods.zip
-Use: Only download this version if you're specifically working with Java modules, but in most cases, the SDK version (above) should suffice.
+Use: Only download this version if you're specifically working with Java modules, but in most cases, the SDK version (above) should suffice.9
 3. macOS (aarch64) SDK
 Download: This version is designed for macOS systems with Apple Silicon processors (M1, M2). If your client has a Mac with Apple Silicon (like a MacBook Air or MacBook Pro with an M1 or M2 chip), they should download this version.
 File: javafx-sdk-23.0.1_macos-aarch64_sdk.zip
@@ -55,26 +55,27 @@ For the downloads: Choose the download that goes with your computer and has the 
 * Windows may take a different approach
 
 ### Steps to Run 
-1. Download Eclipse<img 
+1. Download Eclipse 
 2. Open a new Java Project
 3. Make a package
-4. Connect your project files to this package
-5. Go to Build Path < Donfigure Build Path< Add External JARs 
-6. Downlad the following jar files for javaFX(this should be found fromt the download from Gluon):
+4. Create the classes: 
+5. Connect your project files to this package
+6. Go to Build Path < Configure Build Path< Add External JARs 
+7. Downlad the following jar files for javaFX(this should be found fromt the download from Gluon):
 <img width="464" alt="Screenshot 2025-01-30 at 12 03 09 AM" src="https://github.com/user-attachments/assets/8b17d925-b747-4fcd-b5b0-e0d7b99dc533" />
 
-7. This is found in the lib folder on your javafx-sdk 23.01.
-8. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
+8. This is found in the lib folder on your javafx-sdk 23.01.
+9. <img width="473" alt="Screenshot 2025-02-01 at 4 14 40 PM" src="https://github.com/user-attachments/assets/4668e6ba-f6e8-4397-ba5c-28cd9c75bbf1" />
 
-9. Select the files seen in step 6:
+10. Select the files seen in step 6:
 <img width="1302" alt="Screenshot 2025-02-01 at 4 15 13 PM" src="https://github.com/user-attachments/assets/3d171111-461c-4757-a0ab-efb814dbe394" />
 
-10. In eclipse go to the Run drop down and find the Run configurations.
-11. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
-12. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
-13. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
+11. In eclipse go to the Run drop down and find the Run configurations.
+12. Make sure your Java SE is 22.0.1 and that your JavaFX SDK is 23.0.1(This may be differnet on windows, has worked before with Jave 23.01, try both options)
+13. In run configurations, for VM argument put this except your user/User/place where your javaFX jar files are(mine were in(Downloads)//javafx-sdk-23.0.1/lib --add-modules javafx.controls,javafx.fxml
+14. Example:. <img width="689" alt="Screenshot 2025-01-30 at 12 08 46 AM" src="https://github.com/user-attachments/assets/a929046d-35cd-4a71-ad95-46c23ba3fe32" />
 
-14. Press Apply and then run
+15. Press Apply and then run
 
 Preferably use Eclipse(I don't have knowledge of other IDE's)
 Another way(might work, might not) 
@@ -98,7 +99,7 @@ Block: Z(P1) / M(P2)
 Projectile: V(P1) / L(P2)
 
 Game Mechanics: 
-Attacks: Each character has a basic attack and special ability
+Attacks: Each character has a basic attack with a 10% chance to miss an attack and a 30% chance to hit a critical attack. 
 Blocking: Reduces damage but you lose some of your shield 
 Projectiles: Mostly for fun, they don't do damage(unfortunatly this had to be sacrficed for gameplay functionality)
 Abilties: Cooldowns apply to attacks and special abilities
@@ -108,31 +109,21 @@ Class Structure:
 
  ├── FightingGame Project:
  
- │   ├── GameApp.java             # Main game loop
+ │   ├── AbilityManager.java         # Special abilities logic and cooldowns
  
- │   ├── Character.java            # Character logic and attributes
+ │   ├── Character.java              # Character logic and attributes
  
- │   ├── CharacterRoster.java      # Character selection
+ │   ├── CharacterRoster.java        # Character stats such as health, special ability cooldowns
  
- │   ├── CharacterSelectScreen.java    # UI for character selection
- 
- │   ├── FightArenaFrame.java     # Game window container
- 
- │   ├── FightArenaPanel.java     # Renders characters, health bars, and round updates
- 
- │   ├── RoundManager.java        # Handles rounds and win conditions
- 
- │   ├── Projectile.java          # Projectile behavior and hit detection
- 
- │   ├── ProjectileManager.java   # Manages active projectiles and collisions
- 
- │   ├── AbilityManager.java      # Special abilities logic and cooldowns
- 
- 
- 
- 
+ │   ├── CharacterSelectScreen.java  # UI for character selection
 
+ │   ├── FightingGameApp.java        # Main file that is used to show the logo screen, character select screen, and move screen to users
+ 
+ │   ├── GameApp.java                # Keyboard input and tracking
+  
+ │   ├── Projectile.java             # Projectile creation and properites of a projectile
 
+ │   ├── ProjectileManager.java      # Manages active projectiles and the removal of these projectiles
 
-If you do use this, I hope you enjoy and if you make it better, send me a copy (:
-
+ │   ├── RoundManager.java            # Makes sure that there are only 2 players at one time
+   
