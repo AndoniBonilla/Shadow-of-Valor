@@ -246,19 +246,13 @@ public class GameApp
     private static void setupKeyHandlers(Scene scene, Character player1, Character player2) 
     {
         // Key pressed handler
-        scene.setOnKeyPressed(event -> 
+        scene.setOnKeyPressed(event ->
         {
             activeKeys.add(event.getCode()); // Add the pressed key to the activeKeys set
 
-            // Handle shield activation
-            if (event.getCode() == KeyCode.Z) 
-            { // If 'Z' key is pressed, activate Player 1's shield
-                player1.activateShield();
-            }
-            if (event.getCode() == KeyCode.M) 
-            { // If 'M' key is pressed, activate Player 2's shield
-                player2.activateShield();
-            }
+            // G7: Shield activation is handled exclusively inside processPlayerActions
+            // (called via handlePlayerActions below) to prevent activateShield being
+            // called twice per key press, which stacked Timeline instances on every repeat.
 
             handlePlayerActions(player1, player2); // Handle player-specific actions (attack, special ability, etc.)
         });

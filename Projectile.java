@@ -1,98 +1,140 @@
 package FightingGame;
 
-import java.util.ArrayList;       
-//Allows traversal of collections while enabling safe removal of elements during iteration.
-import java.util.List;
+import javafx.geometry.Bounds;
+// Bounding box of a scene-graph node; used for collision detection.
 
-import javafx.application.Platform;
+import javafx.scene.Node;
+// Base type returned by getSprite() so callers don't depend on Circle directly.
+
+import javafx.scene.paint.Color;
+// Used to color the circle with the owner's color.
+
+import javafx.scene.shape.Circle;
+// The projectile's visual representation: a filled circle of radius size/2.
 
 /**
- * Manages the lifecycle of projectiles in the game, including movement, collisions, and visual updates.
+ * A single projectile launched by a character, moving in a straight line
+ * toward the target position at a fixed speed (pixels per second).
  */
-public class ProjectileManager 
+public class Projectile
 {
-
-    private static final int MAX_PROJECTILES_PER_PLAYER = 6; 
-    // Maximum number of active projectiles allowed.
-
-    private static final List<Projectile> activeProjectiles = new ArrayList<>(); 
-    // Tracks all active projectiles in the game.
+    private final Circle sprite;      // Visual circle in the scene graph.
+    private final double  speed;      // Movement speed in pixels per second.
+    private final double  size;       // Diameter used for collision radius and getDamage().
+    private final double  directionX; // Normalized X component of the movement vector.
+    private final double  directionY; // Normalized Y component of the movement vector.
+    private final Character owner;    // Character that launched this projectile.
 
     /**
-     * Adds a projectile to the scene and tracks it.
-     * @param projectile The projectile to be added.
-     */
-    /**
-     * Adds a new projectile to the game while ensuring that the player does not exceed 
-     * the maximum allowed number of active projectiles.
-     * This method also updates the game UI to display the projectile.
+     * Constructs a projectile that travels from (startX, startY) toward (targetX, targetY).
      *
-     * @param projectile The projectile to be added to the game.
+     * @param owner    Character launching the projectile; must not be null.
+     * @param startX   Starting layout X-coordinate.
+     * @param startY   Starting layout Y-coordinate.
+     * @param targetX  Target layout X-coordinate used to compute direction.
+     * @param targetY  Target layout Y-coordinate used to compute direction.
+     * @param size     Diameter of the circle; drives getDamage() and collision radius.
+     * @param speed    Movement speed in pixels per second.
      */
-    public static void addProjectile(Projectile projectile) 
+    public Projectile(Character owner, double startX, double startY,
+                      double targetX, double targetY, double size, double speed)
     {
-        // Retrieve the character that launched the projectile
-        Character owner = projectile.getOwner();
-
-        // Ensure the projectile has a valid owner before adding it to the game
-        if (owner == null) 
+        if (owner == null)
         {
-            System.err.println("Projectile owner is null. Cannot add projectile.");
-            return; // Exit early to prevent errors
+            throw new IllegalArgumentException("Projectile owner cannot be null.");
+        }
+        this.owner = owner;
+        this.size  = size;
+        this.speed = speed;
+
+        // Build a normalized direction vector; default to rightward if target equals start.
+        double dx     = targetX - startX;
+        double dy     = targetY - startY;
+        double length = Math.sqrt(dx * dx + dy * dy);
+        if (length == 0)
+        {
+            this.directionX = 1.0; // Fallback direction when target == start.
+            this.directionY = 0.0;
+        }
+        else
+        {
+            this.directionX = dx / length;
+            this.directionY = dy / length;
         }
 
-        // Count the number of active projectiles currently owned by this character
-        long ownerProjectileCount = activeProjectiles.stream()
-            .filter(p -> p.getOwner() == owner)
-            .count();
+        // Use the owner's color; fall back to gray when color is not yet assigned
+        // (e.g., during Character field initialization before the constructor runs).
+        Color fill = (owner.getColor() != null) ? owner.getColor() : Color.GRAY;
 
-        // Enforce the maximum number of projectiles per player to prevent spam
-        if (ownerProjectileCount >= MAX_PROJECTILES_PER_PLAYER) 
-        {
-            System.out.println(owner.getName() + " cannot launch more than " 
-                + MAX_PROJECTILES_PER_PLAYER + " projectiles."); // Debug statement
-            return; // Exit early if limit is reached
-        }
-
-        // Synchronize access to the projectile list to prevent concurrency issues
-        synchronized (activeProjectiles) 
-        {
-            activeProjectiles.add(projectile); // Add the projectile to the active list
-        }
-
-        // Add the projectile's visual representation to the game UI safely
-        Platform.runLater(() -> GameApp.root.getChildren().add(projectile.getSprite()));
+        this.sprite = new Circle(size / 2, fill); // Radius = size / 2 per spec.
+        this.sprite.setLayoutX(startX); // Layout coords so isOutOfBounds() reads correctly.
+        this.sprite.setLayoutY(startY);
     }
 
     /**
-     * Removes a projectile from the game, both from the active list and the UI.
-     * This ensures that projectiles do not linger after being destroyed or leaving the screen.
+     * Returns the character that owns (launched) this projectile.
+     */
+    public Character getOwner()
+    {
+        return owner;
+    }
+
+    /**
+     * Returns the projectile's scene-graph node (a Circle).
+     */
+    public Node getSprite()
+    {
+        return sprite;
+    }
+
+    /**
+     * Advances the projectile along its direction vector.
      *
-     * @param projectile The projectile to be removed from the game.
+     * @param deltaTime Seconds elapsed since the last frame.
      */
-    static void removeProjectile(Projectile projectile) 
+    public void updatePosition(double deltaTime)
     {
-        // Remove the projectile from the active list
-        activeProjectiles.remove(projectile); 
-
-        // Ensure the projectile is removed from the game UI safely using the JavaFX thread
-        Platform.runLater(() ->
-        {
-            GameApp.root.getChildren().remove(projectile.getSprite());
-        });
+        sprite.setLayoutX(sprite.getLayoutX() + directionX * speed * deltaTime);
+        sprite.setLayoutY(sprite.getLayoutY() + directionY * speed * deltaTime);
     }
 
     /**
-     * Retrieves the current list of active projectiles.
-     * 
-     * @return A list containing all active projectiles in the game.
+     * Returns the bounding box of the sprite in parent-coordinate space.
+     * Used by ProjectileManager.handleCollision for intersection checks.
      */
-    public static List<Projectile> getActiveProjectiles()
+    public Bounds getBounds()
     {
-         
-
-        return activeProjectiles; // Return the list of active projectiles.
-        
+        return sprite.getBoundsInParent();
     }
-    
-} 
+
+    /**
+     * Circle–circle distance check between this projectile and another.
+     *
+     * @param other The other projectile.
+     * @return True if the two circles overlap.
+     */
+    public boolean collidesWith(Projectile other)
+    {
+        double dx       = sprite.getLayoutX() - other.sprite.getLayoutX();
+        double dy       = sprite.getLayoutY() - other.sprite.getLayoutY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        double combined = (this.size / 2) + (other.size / 2); // Sum of radii.
+        return distance < combined;
+    }
+
+    /**
+     * Returns the projectile's size (used for collision radius calculations).
+     */
+    public double getSize()
+    {
+        return size;
+    }
+
+    /**
+     * Returns damage proportional to size. Wired into the health system by G4.
+     */
+    public double getDamage()
+    {
+        return size * 0.5; // Simple linear scale from projectile size.
+    }
+}

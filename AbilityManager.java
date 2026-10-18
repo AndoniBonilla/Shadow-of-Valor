@@ -194,29 +194,12 @@ public class AbilityManager
         }).start();
     }
 
-    // Temporarily stuns the opponent, preventing them from acting
-    private static void stunOpponent(Character opponent, int duration) 
+    // Temporarily stuns the opponent, preventing them from acting. (G2)
+    // Uses applyStun so overlapping stuns extend rather than shorten each other.
+    private static void stunOpponent(Character opponent, int duration)
     {
-        // Set the opponent's stunned state to true
-        opponent.setStunned(true);
-        System.out.println(opponent.getName() + " is stunned!");
-
-        // Create a new thread to remove the stun after the duration ends
-        new Thread(() -> 
-        {
-            try 
-            {
-                Thread.sleep(duration); // Wait for the duration of the stun
-            } 
-            catch (InterruptedException e) {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
-            }
-            // Use Platform.runLater to update JavaFX components on the main thread
-            Platform.runLater(() -> {
-                opponent.setStunned(false); // Remove the stunned state
-                System.out.println(opponent.getName() + " is no longer stunned.");
-            });
-        }).start();
+        opponent.applyStun(duration); // Timestamp-based stun; never shortens existing stun.
+        System.out.println(opponent.getName() + " is stunned for " + duration + "ms!");
     }
 
     // Teleports the user to a random position within the arena
@@ -264,25 +247,25 @@ public class AbilityManager
     }
 
     // Makes the user invisible for a specified duration
-    private static void goInvisible(Character user, int duration) 
+    private static void goInvisible(Character user, int duration)
     {
-        // Set the user's character sprite opacity to 0 (invisible)
+        // Set the user's character sprite opacity to 0 (invisible).
         user.getCharacterSprite().setOpacity(0);
         System.out.println(user.getName() + " is now invisible!");
 
-        // Create a new thread to make the user visible again after the duration ends
-        new Thread(() -> 
+        // Create a new thread to make the user visible again after the duration ends.
+        new Thread(() ->
         {
-            try 
+            try
             {
-                Thread.sleep(duration); // Wait for the duration of invisibility
-            } 
-            catch (InterruptedException e) 
-            {
-                e.printStackTrace(); // Print the stack trace if the thread is interrupted
+                Thread.sleep(duration); // Wait for the duration of invisibility.
             }
-            // Restore the sprite's opacity to make the user visible again
-            user.getCharacterSprite().setOpacity(1.0);
+            catch (InterruptedException e)
+            {
+                e.printStackTrace(); // Print the stack trace if the thread is interrupted.
+            }
+            // T1: Restore sprite opacity on the FX thread to avoid "Not on FX thread" errors.
+            Platform.runLater(() -> user.getCharacterSprite().setOpacity(1.0));
         }).start();
     }
 }
