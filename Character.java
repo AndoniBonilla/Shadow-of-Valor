@@ -1,5 +1,5 @@
 package FightingGame;
-// Defines the `FightingGame` package. Groups related game files, such as `Character` and `GameApp`.
+// Defines the `FightingGame` package. Groups related game files, such as `Character` and `GameSession`.
 
 import javafx.animation.KeyFrame;
 // Represents a single frame in an animation timeline.
@@ -7,14 +7,14 @@ import javafx.animation.PauseTransition;
 // One-shot FX-thread timer; used for G1 (attack-speed reset) and G2 (stun-opacity restore).
 import javafx.animation.Timeline;
 // Used for creating animations that cycle through multiple `KeyFrame` objects.
-import javafx.application.Platform;
-// Ensures thread-safe UI updates by running code on the JavaFX Application Thread.
 import javafx.scene.Group;
 // Used to group multiple visual elements (e.g., body parts of the character) into one sprite.
 import javafx.scene.control.ProgressBar;
 // Visual representation of health or shield levels above the character.
 import javafx.scene.effect.DropShadow;
 // Simulates a light source on the character, making them appear illuminated.
+import javafx.scene.layout.Pane;
+// Container used in addBarsToPane (U3) to attach bars without referencing GameSession directly.
 import javafx.scene.paint.Color;
 // A more generic version of `Color`, allows for gradient or pattern fills.
 import javafx.scene.shape.Circle;
@@ -46,7 +46,7 @@ public class Character
     private int maxHealth; // Maximum possible health of the character.
     private int attackPower; // Damage dealt during an attack.
 
-    private boolean isAttacking = false; // Indicates if the character is currently attacking.
+    private boolean isAttacking = false; // Indicates if the character is currently in wind-up.
     private boolean isInLag = false; // Indicates if the character is in attack recovery lag.
     private boolean isShieldAvailable = true; // G6: initialized true so shield works from the start.
     private boolean isCharging = false; // Tracks if the character is charging a projectile.
@@ -54,15 +54,19 @@ public class Character
     private boolean projectileKeyPressed = false; // Tracks if the projectile key was recently pressed.
 
     private double shieldLevel = 1.0; // Current shield strength (0.0 to 1.0).
-    private double movementMultiplier = 1.0; // Adjusts movement speed (default is normal speed).
     private double defensePower; // Defense attribute for reducing incoming damage.
-    private double movementSpeed = 3.0; // Default movement speed.
+    private double movementSpeed = 180; // U4: pixels per second (replaces the old 3.0 per-frame value).
 
     private long shieldLastUsedTime; // Tracks the last time the shield was broken.
     private long lastSpecialUsedTime = 0; // Timestamp of the last special ability use.
     private long chargingStartTime = -1; // Tracks when projectile charging began (-1 = not charging).
     private long specialAbilityCooldown; // Cooldown duration for special abilities in milliseconds.
     private long stunnedUntil = 0; // G2: timestamp until which the character is stunned (0 = not stunned).
+
+    // T2: attack timing driven by wall-clock timestamps; no Thread.sleep anywhere.
+    private long attackWindUpEndMs = 0;        // Epoch-ms when wind-up completes.
+    private long attackEndLagEndMs = 0;        // Epoch-ms when end-lag completes.
+    private Character pendingAttackTarget = null; // Target stored while wind-up is in progress.
 
     // G1: per-instance multiplier replaces the shared mutable static fields.
     private double attackSpeedMultiplier = 1.0; // Multiplier applied to attack wind-up and end-lag.
@@ -101,9 +105,7 @@ public class Character
         this.shieldBar.setStyle("-fx-accent: blue;"); // Colors the shield bar blue.
         this.shieldBar.setLayoutX(x); // Positions the shield bar horizontally.
         this.shieldBar.setLayoutY(y - 30); // Positions the shield bar above the character.
-
-        // Adds the shield bar to the game's root node.
-        GameApp.root.getChildren().add(this.shieldBar);
+        // U3: bars are NOT added to any root pane here; GameSession calls addBarsToPane() instead.
 
         // Creates the visual representation (sprite) of the character.
         Circle head     = new Circle(15, color); // Character head circle.
@@ -128,11 +130,26 @@ public class Character
         this.healthBar.setStyle("-fx-accent: green;");
         this.healthBar.setLayoutX(x);
         this.healthBar.setLayoutY(y - 20); // Places the health bar slightly above the character.
-
-        GameApp.root.getChildren().add(this.healthBar); // Adds the health bar to the game scene.
+        // U3: bars are NOT added to any root pane here; GameSession calls addBarsToPane() instead.
     }
 
-
+    /**
+     * Adds this character's health and shield bars to the given pane. (U3)
+     * GameSession calls this after repositioning the sprite so bars track the fighter's in-game position.
+     *
+     * @param root The pane that will display the bars.
+     */
+    public void addBarsToPane(Pane root)
+    {
+        double x = characterSprite.getLayoutX(); // Use the in-game position, not the CharacterRoster position.
+        double y = characterSprite.getLayoutY();
+        shieldBar.setLayoutX(x); // Reposition shield bar to match sprite.
+        shieldBar.setLayoutY(y - 30);
+        healthBar.setLayoutX(x); // Reposition health bar to match sprite.
+        healthBar.setLayoutY(y - 20);
+        root.getChildren().add(shieldBar); // Attach to the active game pane.
+        root.getChildren().add(healthBar);
+    }
 
     public Group getCharacterSprite()
     {
@@ -172,7 +189,7 @@ public class Character
 
     public double getMovementSpeed()
     {
-        // Returns the character's movement speed.
+        // Returns the character's movement speed (pixels per second after U4).
         return movementSpeed;
     }
 
@@ -283,52 +300,57 @@ public class Character
         }
     }
 
-    // Method to move the character up while respecting the arena's top boundary
-    public void moveUp(double boundaryTop)
+    /**
+     * Moves the sprite by a normalized direction vector scaled by speed * dt. (U4)
+     * Positions are clamped to GameSession boundaries instead of rejected, so diagonal
+     * movement against a wall slides smoothly along it.
+     *
+     * @param ndx Normalized X component of the movement direction.
+     * @param ndy Normalized Y component of the movement direction.
+     * @param dt  Seconds elapsed since the last frame.
+     */
+    public void moveBy(double ndx, double ndy, double dt)
     {
-        // Calculate new Y-coordinate.
-        double newY = this.characterSprite.getLayoutY() - movementSpeed * movementMultiplier;
-
-        // Move only if within bounds.
-        if (newY >= boundaryTop)
-        {
-            this.characterSprite.setLayoutY(newY);
-        }
+        if (isStunned()) return; // G2: movement is blocked while stunned.
+        double newX = characterSprite.getLayoutX() + ndx * movementSpeed * dt;
+        double newY = characterSprite.getLayoutY() + ndy * movementSpeed * dt;
+        // Clamp to boundaries (U4: clamp instead of reject, so diagonal never stops early).
+        newX = Math.max(GameSession.BOUNDARY_LEFT,   Math.min(GameSession.BOUNDARY_RIGHT,  newX));
+        newY = Math.max(GameSession.BOUNDARY_TOP,    Math.min(GameSession.BOUNDARY_BOTTOM, newY));
+        characterSprite.setLayoutX(newX);
+        characterSprite.setLayoutY(newY);
     }
 
-    // Method to move the character down while respecting the arena's bottom boundary
-    public void moveDown(double boundaryBottom)
+    /**
+     * Per-frame update: resolves attack wind-up and end-lag via wall-clock timestamps. (T2)
+     * Called by GameSession every frame on the FX thread; no Thread.sleep is used.
+     *
+     * @param nowMillis System.currentTimeMillis() sampled at the start of the frame.
+     * @param dt        Seconds elapsed since the last frame (capped to 0.05 by the caller).
+     */
+    public void update(long nowMillis, double dt)
     {
-        // Calculate new Y-coordinate.
-        double newY = this.characterSprite.getLayoutY() + movementSpeed * movementMultiplier;
-
-        if (newY <= boundaryBottom)
+        // Wind-up complete: deliver the pending attack to the stored target.
+        if (isAttacking && nowMillis >= attackWindUpEndMs)
         {
-            this.characterSprite.setLayoutY(newY);
+            if (pendingAttackTarget != null)
+            {
+                int damage = calculateDamage(); // Compute damage on the FX thread.
+                pendingAttackTarget.takeDamage(damage, null); // Apply to the opponent.
+                System.out.println(name + " attacked " + pendingAttackTarget.getName()
+                    + " for " + damage + " damage!");
+            }
+            pendingAttackTarget = null; // Clear pending target.
+            isAttacking = false;
+            isInLag = true; // Enter recovery lag.
+            attackEndLagEndMs = nowMillis + (long)(BASE_END_LAG_MS / attackSpeedMultiplier);
         }
-    }
 
-    // Method to move the character left while respecting the arena's left boundary
-    public void moveLeft(double boundaryLeft)
-    {
-        // Calculate new X-coordinate.
-        double newX = this.characterSprite.getLayoutX() - movementSpeed * movementMultiplier;
-
-        if (newX >= boundaryLeft)
+        // End-lag complete: ready for the next attack.
+        if (isInLag && nowMillis >= attackEndLagEndMs)
         {
-            this.characterSprite.setLayoutX(newX);
-        }
-    }
-
-    // Method to move the character right while respecting the arena's right boundary
-    public void moveRight(double boundaryRight)
-    {
-        // Calculate new X-coordinate.
-        double newX = this.characterSprite.getLayoutX() + movementSpeed * movementMultiplier;
-
-        if (newX <= boundaryRight)
-        {
-            this.characterSprite.setLayoutX(newX);
+            isInLag = false;
+            System.out.println(name + " is ready to attack again!");
         }
     }
 
@@ -408,8 +430,7 @@ public class Character
         // Size: 10 px (no charge) to 30 px (full charge). (G5)
         double size = 10.0 + ratio * 20.0;
 
-        // Speed: 400 px/s (no charge) to 200 px/s (full charge).
-        // Crosses the 600 px arena in 1.5–3 seconds. (G5)
+        // Speed: 400 px/s (no charge) to 200 px/s (full charge). (G5)
         double speed = 400.0 - ratio * 200.0;
 
         Projectile projectile = new Projectile(this,
@@ -463,8 +484,7 @@ public class Character
     /**
      * Breaks the shield: sets level to 0, starts the 5-second cooldown,
      * and removes the visual glow effect. (G6)
-     * Call only from the FX thread (e.g., updateShieldState, releaseShieldKey).
-     * From background threads, call Platform.runLater(this::deactivateShield) instead.
+     * Call only from the FX thread (updateShieldState, releaseShieldKey, takeDamage).
      */
     public void breakShield()
     {
@@ -524,32 +544,6 @@ public class Character
         isShieldActive = false;
     }
 
-    // Handles character movement based on player input. Blocked while stunned. (G2)
-    public void handleInput(String input, double arenaWidth, double arenaHeight)
-    {
-        if (isStunned()) // G2: movement is blocked while stunned.
-        {
-            return;
-        }
-        switch (input)
-        {
-            case "UP":
-                moveUp(GameApp.BOUNDARY_TOP);
-                break;
-            case "DOWN":
-                moveDown(GameApp.BOUNDARY_BOTTOM);
-                break;
-            case "LEFT":
-                moveLeft(GameApp.BOUNDARY_LEFT);
-                break;
-            case "RIGHT":
-                moveRight(GameApp.BOUNDARY_RIGHT);
-                break;
-            default:
-                System.err.println("Unknown input: " + input);
-        }
-    }
-
     /**
      * Deactivates the shield when the shield key is released.
      */
@@ -563,8 +557,8 @@ public class Character
     }
 
     /**
-     * Executes a basic attack on the opponent. Blocked while stunned. (G2)
-     * Wind-up and end-lag are scaled by this character's attackSpeedMultiplier. (G1)
+     * Starts the attack wind-up. The actual damage is delivered in update() when
+     * attackWindUpEndMs is reached. (T2: no Thread.sleep; timing via timestamps.)
      *
      * @param opponent The opponent character being attacked.
      */
@@ -576,7 +570,7 @@ public class Character
             return;
         }
 
-        if (isAttacking || isInLag) // Prevent overlapping attacks.
+        if (isAttacking || isInLag) // Previous attack still in wind-up or end-lag.
         {
             return;
         }
@@ -588,36 +582,33 @@ public class Character
 
         System.out.println(this.name + " is winding up for an attack...");
         isAttacking = true;
+        pendingAttackTarget = opponent; // Store target; damage applied when wind-up ends.
+        attackWindUpEndMs = System.currentTimeMillis()
+            + (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier); // G1: per-instance timing.
+        applyAttackWindUpEffect(); // Visual glow during wind-up.
+    }
 
-        applyAttackWindUpEffect(); // Red glow during wind-up.
+    /**
+     * Applies a red glow during wind-up and clears it via PauseTransition. (T2)
+     * Called from performAttack which runs on the FX thread; no Thread.sleep used.
+     */
+    private void applyAttackWindUpEffect()
+    {
+        if (characterSprite == null) return;
 
-        // Compute per-instance delays from the speed multiplier. (G1)
-        long windUp = (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier);
-        long endLag = (long)(BASE_END_LAG_MS  / attackSpeedMultiplier);
+        DropShadow attackEffect = new DropShadow();
+        attackEffect.setColor(Color.RED);
+        attackEffect.setRadius(30);
+        characterSprite.setEffect(attackEffect); // On FX thread; direct call is safe.
 
-        new Thread(() ->
+        // Clear the effect after the wind-up duration using a FX-thread-safe timer.
+        long windUp = (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier); // G1: scaled.
+        PauseTransition clear = new PauseTransition(Duration.millis(windUp));
+        clear.setOnFinished(e ->
         {
-            try
-            {
-                Thread.sleep(windUp); // Wait for wind-up to complete.
-
-                int damage = calculateDamage(); // Calculate damage after wind-up.
-                opponent.takeDamage(damage, null); // Apply damage to the opponent.
-                System.out.println(this.name + " attacked " + opponent.getName()
-                    + " for " + damage + " damage!");
-
-                Thread.sleep(endLag); // Recovery lag after the attack.
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                isAttacking = false; // Ready for next attack.
-                System.out.println(this.name + " is ready to attack again!");
-            }
-        }).start();
+            if (characterSprite != null) characterSprite.setEffect(null);
+        });
+        clear.play();
     }
 
     /**
@@ -663,38 +654,8 @@ public class Character
     }
 
     /**
-     * Applies a red glow effect during the attack wind-up and clears it after.
-     */
-    private void applyAttackWindUpEffect()
-    {
-        if (characterSprite != null)
-        {
-            DropShadow attackEffect = new DropShadow();
-            attackEffect.setColor(Color.RED);
-            attackEffect.setRadius(30);
-
-            Platform.runLater(() -> characterSprite.setEffect(attackEffect)); // Apply on FX thread.
-
-            long windUp = (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier); // G1: match wind-up.
-            new Thread(() ->
-            {
-                try
-                {
-                    Thread.sleep(windUp);
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
-                Platform.runLater(() -> characterSprite.setEffect(null)); // Clear on FX thread.
-            }).start();
-        }
-    }
-
-    /**
-     * Applies damage, considering the active shield.
-     * T1: deactivateShield (visual) is wrapped in Platform.runLater when the shield
-     * breaks from a background thread (e.g., an attack worker thread).
+     * Applies damage, considering the active shield. (T2)
+     * Now always called from the FX thread (game loop or update()), so no Platform.runLater needed.
      *
      * @param damage     The amount of damage to be applied.
      * @param projectile The projectile that caused the damage (null for melee).
@@ -704,18 +665,17 @@ public class Character
         // Check if the shield is active.
         if (isShieldActive)
         {
-            double shieldReductionFactor = 1.0;
-            double shieldDamage = damage * shieldReductionFactor;
+            double shieldDamage = damage;
             shieldLevel -= shieldDamage / 100.0; // Reduce shield by absorbed damage.
 
             if (shieldLevel <= 0)
             {
-                // State changes are thread-safe (no FX nodes involved).
+                // T2: now on FX thread; direct call is safe (no Platform.runLater needed).
                 shieldLevel = 0;
                 isShieldAvailable = false; // G6: start cooldown.
                 shieldLastUsedTime = System.currentTimeMillis();
                 System.out.println(name + "'s shield is broken!");
-                Platform.runLater(this::deactivateShield); // T1: visual update on FX thread.
+                deactivateShield(); // Remove glow; runs on FX thread.
             }
             else
             {
@@ -775,9 +735,8 @@ public class Character
     }
 
     /**
-     * Updates the character's health (clamped to [0, maxHealth]).
-     * T1: healthBar.setProgress is wrapped in Platform.runLater because setHealth
-     * may be called from gradualHeal which runs on a background thread.
+     * Updates the character's health (clamped to [0, maxHealth]). (T2)
+     * Now always called from the FX thread (Timeline or game loop); no Platform.runLater needed.
      *
      * @param health The new health value.
      */
@@ -800,7 +759,7 @@ public class Character
         if (healthBar != null)
         {
             double progress = (double) this.health / maxHealth;
-            Platform.runLater(() -> healthBar.setProgress(progress)); // T1: FX update on FX thread.
+            healthBar.setProgress(progress); // T2: on FX thread; direct call is safe.
         }
     }
 
