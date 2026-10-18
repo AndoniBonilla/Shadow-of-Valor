@@ -9,12 +9,8 @@ import javafx.animation.Timeline;
 // Used for creating animations that cycle through multiple `KeyFrame` objects.
 import javafx.scene.Group;
 // Used to group multiple visual elements (e.g., body parts of the character) into one sprite.
-import javafx.scene.control.ProgressBar;
-// Visual representation of health or shield levels above the character.
 import javafx.scene.effect.DropShadow;
 // Simulates a light source on the character, making them appear illuminated.
-import javafx.scene.layout.Pane;
-// Container used in addBarsToPane (U3) to attach bars without referencing GameSession directly.
 import javafx.scene.paint.Color;
 // Allows for color specification used in sprites and effects.
 import javafx.scene.shape.Circle;
@@ -37,9 +33,7 @@ public class Character
 
     private Character opponent; // Reference to the character's current opponent.
 
-    private ProgressBar shieldBar; // Visual representation of the shield's current strength.
     private Group characterSprite; // The character's visual representation, composed of shapes.
-    private ProgressBar healthBar; // Displays the character's current health level.
 
     private double health; // Current health of the character.
     private int maxHealth; // Maximum possible health of the character.
@@ -122,14 +116,6 @@ public class Character
         // Sets the character's color (used for the sprite and effects).
         this.color = color;
 
-        // Creates a shield bar above the character.
-        this.shieldBar = new ProgressBar(1.0); // Initializes the shield bar at full strength.
-        this.shieldBar.setPrefWidth(100); // Sets the shield bar's visual width.
-        this.shieldBar.setStyle("-fx-accent: blue;"); // Colors the shield bar blue.
-        this.shieldBar.setLayoutX(x); // Positions the shield bar horizontally.
-        this.shieldBar.setLayoutY(y - 30); // Positions the shield bar above the character.
-        // U3: bars are NOT added to any root pane here; GameSession calls addBarsToPane() instead.
-
         // Creates the visual representation (sprite) of the character.
         Circle head     = new Circle(15, color); // Character head circle.
         Line body       = new Line(0, -20, 0, 20); // Vertical body line.
@@ -148,30 +134,6 @@ public class Character
         this.characterSprite.setLayoutX(x);
         this.characterSprite.setLayoutY(y);
 
-        this.healthBar = new ProgressBar(1.0); // Initializes the health bar to full.
-        this.healthBar.setPrefWidth(100);
-        this.healthBar.setStyle("-fx-accent: green;");
-        this.healthBar.setLayoutX(x);
-        this.healthBar.setLayoutY(y - 20); // Places the health bar slightly above the character.
-        // U3: bars are NOT added to any root pane here; GameSession calls addBarsToPane() instead.
-    }
-
-    /**
-     * Adds this character's health and shield bars to the given pane. (U3)
-     * Called by GameSession after repositioning the sprite so bars track the fighter's position.
-     *
-     * @param root The pane that will display the bars.
-     */
-    public void addBarsToPane(Pane root)
-    {
-        double x = characterSprite.getLayoutX(); // Use in-game position, not CharacterRoster position.
-        double y = characterSprite.getLayoutY();
-        shieldBar.setLayoutX(x);
-        shieldBar.setLayoutY(y - 30);
-        healthBar.setLayoutX(x);
-        healthBar.setLayoutY(y - 20);
-        root.getChildren().add(shieldBar);
-        root.getChildren().add(healthBar);
     }
 
     // --- Getters and setters ---
@@ -208,6 +170,8 @@ public class Character
     public double getHealthPercentage() { return (double) health / maxHealth; }
 
     public boolean isShieldActive() { return isShieldActive; }
+
+    public boolean isShieldAvailable() { return isShieldAvailable; } // U2: read by GameSession.updateBars.
 
     public boolean isProjectileKeyPressed() { return projectileKeyPressed; }
 
@@ -480,12 +444,6 @@ public class Character
 
     public void updateShieldState(long currentTime)
     {
-        if (shieldBar == null)
-        {
-            System.err.println("Error: shieldBar is not initialized for " + name);
-            return;
-        }
-
         if (isShieldActive)
         {
             shieldLevel -= SHIELD_DEPLETION_RATE;
@@ -501,11 +459,9 @@ public class Character
 
         if (!isShieldAvailable && (currentTime - shieldLastUsedTime >= SHIELD_COOLDOWN))
         {
-            isShieldAvailable = true; // Cooldown expired.
+            isShieldAvailable = true; // Cooldown expired; shield can be raised again.
         }
-
-        shieldBar.setProgress(shieldLevel);
-        shieldBar.setStyle(isShieldAvailable ? "-fx-accent: green;" : "-fx-accent: red;");
+        // U2: bar updates removed; GameSession.updateBars() drives the HUD bars directly.
     }
 
     /** Breaks the shield: sets level to 0, starts cooldown, removes visual. (G6) */
@@ -736,11 +692,7 @@ public class Character
             this.health = newHealth;
         }
         System.out.println(name + "'s health is now: " + (int)this.health);
-
-        if (healthBar != null)
-        {
-            healthBar.setProgress(this.health / maxHealth); // T2: on FX thread; direct call is safe.
-        }
+        // U2: healthBar removed; GameSession.updateBars() drives the HUD health bar directly.
     }
 
     public void setSpecialAbilityCooldown(int cooldown)

@@ -5,13 +5,15 @@ package FightingGame;
 import java.util.ArrayList; // G4: collects projectile-vs-projectile losers before bulk removal.
 import java.util.HashSet; // For tracking active keys and one-shot key events.
 import java.util.Iterator; // For safe projectile list iteration with removal.
-import java.util.List; // For passing the player list to RoundManager.
+import java.util.List; // Used for the live projectile list in the G4 two-pass loop.
+import java.util.Optional; // U6: receives the user's button choice from the end-of-match dialog.
 import java.util.Set; // For activeKeys, justPressed, justReleased sets.
 
 import javafx.animation.AnimationTimer; // Main game loop driven at screen refresh rate.
 import javafx.application.Platform; // Used to show the end-game Alert on the FX thread.
 import javafx.scene.Scene; // The game window's content.
-import javafx.scene.control.Alert; // Pop-up for the game-over message.
+import javafx.scene.control.Alert; // Pop-up for the end-of-match message. (U6)
+import javafx.scene.control.ButtonType; // Rematch and Main Menu button types. (U6)
 import javafx.scene.control.Label; // Timer label displayed in the arena.
 import javafx.scene.control.ProgressBar; // HUD health and shield bars.
 import javafx.scene.input.KeyCode; // Key constants used by the Controls record.
@@ -74,12 +76,16 @@ public class GameSession
     }
 
     /**
-     * Static adapter: creates a fresh GameSession and starts the match.
-     * FightingGameApp calls GameApp.startGameWithCharacters → GameApp delegates here.
+     * Static adapter: builds fresh Character instances from specs and starts a new match. (U2, U6)
+     * FightingGameApp calls GameApp.startGameWithSpecs → GameApp delegates here.
      */
-    public static void startGameWithCharacters(Character player1, Character player2)
+    public static void startGameWithSpecs(CharacterRoster.CharacterSpec spec1,
+                                          CharacterRoster.CharacterSpec spec2,
+                                          Runnable rematch, Runnable mainMenu)
     {
-        new GameSession(sharedPrimaryStage).start(player1, player2);
+        Character player1 = spec1.createCharacter(); // Fresh instance; full health and no buffs.
+        Character player2 = spec2.createCharacter();
+        new GameSession(sharedPrimaryStage, rematch, mainMenu).start(player1, player2);
     }
 
     // -----------------------------------------------------------------
@@ -109,13 +115,19 @@ public class GameSession
     private ProjectileManager projectileManager; // Owns projectile list and sprites.
     private AnimationTimer gameLoop; // Drives the match at screen-refresh rate.
 
+    // U6: called when the match ends; provided by FightingGameApp so GameSession stays decoupled.
+    private final Runnable rematchAction;   // Starts a fresh match with the same character specs.
+    private final Runnable mainMenuAction;  // Returns the user to the main navigation screen.
+
     // -----------------------------------------------------------------
     // Constructor
     // -----------------------------------------------------------------
 
-    public GameSession(Stage primaryStage)
+    public GameSession(Stage primaryStage, Runnable rematchAction, Runnable mainMenuAction)
     {
         this.primaryStage = primaryStage;
+        this.rematchAction = rematchAction;     // Store callback for end-of-match rematch. (U6)
+        this.mainMenuAction = mainMenuAction;   // Store callback for returning to main menu. (U6)
     }
 
     // -----------------------------------------------------------------
@@ -141,10 +153,6 @@ public class GameSession
 
         player1.setOpponent(player2); // Wire up mutual opponent references.
         player2.setOpponent(player1);
-
-        // U3: bars are attached via a method; Character never references this pane directly.
-        player1.addBarsToPane(root);
-        player2.addBarsToPane(root);
 
         setupHealthBars(); // Create and add the top-of-screen HUD health bars.
         setupShieldBars(); // Create and add the top-of-screen HUD shield bars.
@@ -448,12 +456,13 @@ public class GameSession
         if (player1ShieldBar != null)
         {
             player1ShieldBar.setProgress(player1.getShieldLevel());
-            player1ShieldBar.setStyle(player1.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;");
+            // U2: blue = shield available; red = on cooldown after a break.
+            player1ShieldBar.setStyle(player1.isShieldAvailable() ? "-fx-accent: blue;" : "-fx-accent: red;");
         }
         if (player2ShieldBar != null)
         {
             player2ShieldBar.setProgress(player2.getShieldLevel());
-            player2ShieldBar.setStyle(player2.getShieldLevel() > 0 ? "-fx-accent: blue;" : "-fx-accent: gray;");
+            player2ShieldBar.setStyle(player2.isShieldAvailable() ? "-fx-accent: blue;" : "-fx-accent: red;");
         }
         if (player1HealthBar != null)
         {
@@ -479,19 +488,51 @@ public class GameSession
         return x < 0 || x > ARENA_WIDTH || y < 0 || y > ARENA_HEIGHT;
     }
 
-    // Displays the game-over alert and closes the stage.
+    /**
+     * Ends the match: determines the winner by health percentage and shows the end-of-match
+     * dialog with Rematch and Main Menu options. (U6)
+     * Winner is whoever has the higher health percentage; equal percentages (including both
+     * reaching 0 on the same frame) result in a Draw.
+     */
     private void endGame(Character player1, Character player2)
     {
         Platform.runLater(() ->
         {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            // U6: compare health percentages so characters with different max-HP are treated fairly.
+            double p1pct = player1.getHealth() / player1.getMaxHealth();
+            double p2pct = player2.getHealth() / player2.getMaxHealth();
+
+            String message;
+            if (Math.abs(p1pct - p2pct) < 1e-9)
+            {
+                message = "Draw!"; // Equal percentages (including both reaching 0 together).
+            }
+            else if (p1pct > p2pct)
+            {
+                message = player1.getName() + " Wins!";
+            }
+            else
+            {
+                message = player2.getName() + " Wins!";
+            }
+
+            // U6: replace primaryStage.close() with Rematch / Main Menu dialog.
+            ButtonType rematchBtn  = new ButtonType("Rematch");
+            ButtonType mainMenuBtn = new ButtonType("Main Menu");
+            Alert alert = new Alert(Alert.AlertType.NONE, "Game Over! " + message,
+                                    rematchBtn, mainMenuBtn);
             alert.setTitle("Game Over");
             alert.setHeaderText(null);
-            String winner = player1.getHealth() > player2.getHealth()
-                ? player1.getName() : player2.getName();
-            alert.setContentText("Game Over! " + winner + " Wins!");
-            alert.showAndWait();
-            primaryStage.close();
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == rematchBtn)
+            {
+                rematchAction.run(); // U6: fresh session with the same character specs.
+            }
+            else
+            {
+                mainMenuAction.run(); // U6: return to the main navigation screen.
+            }
         });
     }
 

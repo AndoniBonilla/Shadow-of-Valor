@@ -1,39 +1,40 @@
 package FightingGame;
 
-import javafx.application.Application; // Base class for JavaFX applications 
+import javafx.animation.KeyFrame; // Single frame in the logo color-cycling timeline.
+import javafx.animation.Timeline; // Drives the logo color-cycling animation. (U1)
+import javafx.application.Application; // Base class for JavaFX applications
 import javafx.geometry.Pos;
 import javafx.scene.Scene; // Represents the contents of a JavaFX stage
 import javafx.scene.control.Button; // Button UI component for interactions
-import javafx.scene.control.Label; // Label UI component for displaying text
+import javafx.scene.control.Label; // Label control for displaying text
 import javafx.scene.layout.VBox; // Layout container that arranges children vertically
+import javafx.scene.paint.Color; // Used for the 12-color logo cycle. (U1)
 import javafx.stage.Stage; // The primary window container for JavaFX applications
+import javafx.util.Duration; // Time intervals for the logo Timeline. (U1)
 
 /**
  * Main application class for the Fighting Game.
  * Handles initialization, user navigation, and transitions between scenes.
  */
-public class FightingGameApp extends Application 
+public class FightingGameApp extends Application
 {
 
-    private static Stage primaryStage; // The main stage for displaying scenes
+    private static Stage primaryStage; // The main stage for displaying scenes.
+    // U6: kept as static so GameSession callbacks can call showMainMenu().
+    private static FightingGameApp instance; // Singleton reference for static callbacks.
 
     /**
      * Entry point for JavaFX applications.
-     * Initializes the main stage and starts the game by displaying the logo.
+     * Shows the stage immediately and displays the animated logo. (U1)
      *
      * @param primaryStage The primary stage provided by JavaFX.
      */
     @Override
-    public void start(Stage primaryStage) 
+    public void start(Stage primaryStage)
     {
-        FightingGameApp.primaryStage = primaryStage; // Set the primary stage for the application
-
-        // Display the ASCII logo, then prompt the user to navigate to the next screen
-        displayLogoWithColorChange(() ->
-        {
-            // After the logo display is complete, prompt the user for the next action
-            promptUserChoice();
-        });
+        FightingGameApp.primaryStage = primaryStage;
+        FightingGameApp.instance = this; // Store for static callbacks (U6).
+        displayLogoWithColorChange(this::promptUserChoice); // U1: no Thread.sleep.
     }
 
     /**
@@ -41,83 +42,97 @@ public class FightingGameApp extends Application
      *
      * @param args Command-line arguments (not used in this application).
      */
-    public static void main(String[] args) 
+    public static void main(String[] args)
     {
         launch(args); // Launch the JavaFX application
     }
 
     /**
-     * Displays an ASCII logo with a color-changing effect for visual flair.
-     * Once complete, it runs the provided onLogoComplete Runnable.
+     * Displays the ASCII logo in a JavaFX window, cycling through 12 text colors
+     * with a Timeline (12 frames × 300 ms ≈ 3.6 s). (U1)
+     * The stage is shown immediately; no Thread.sleep is used anywhere.
+     * Goes to the menu when the animation finishes, or on any key press or click.
      *
      * @param onLogoComplete Callback to execute after the logo display completes.
      */
-    private void displayLogoWithColorChange(Runnable onLogoComplete) 
+    private void displayLogoWithColorChange(Runnable onLogoComplete)
     {
-        // Define an array of ANSI color codes for the logo text
-        String[] colors = 
-        	{
-                "\033[0;31m", // Red
-                "\033[0;32m", // Green
-                "\033[0;33m", // Yellow
-                "\033[0;34m", // Blue
-                "\033[0;35m", // Purple
-                "\033[0;36m", // Cyan
-                "\033[0;37m", // White
-                "\033[1;31m", // Bright Red
-                "\033[1;32m", // Bright Green
-                "\033[1;33m", // Bright Yellow
-                "\033[1;34m", // Bright Blue
-                "\033[1;35m"  // Bright Purple
+        // Multi-line ASCII logo rendered in a monospace label.
+        String logoText =
+              "  ███████╗██╗  ██╗ █████╗  ██████╗   ██╗   ██╗ █████╗ ██╗\n"
+            + "  ██╔════╝██║  ██║██╔══██╗ ██╔══██║  ██║   ██║██╔══██╗██║\n"
+            + "  ███████╗███████║███████║ ██║  ██║  ██║   ██║███████║██║\n"
+            + "  ╚════██║██╔══██║██╔══██║ ██║  ██║  ╚██╗ ██╔╝██╔══██║██║\n"
+            + "  ███████║██║  ██║██║  ██║ █████╔═╝   ╚████╔╝ ██║  ██║███████╗\n"
+            + "  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚════╝      ╚═══╝  ╚═╝  ╚═╝╚══════╝\n"
+            + "\n"
+            + "        ██████╗ ███████╗    ██╗   ██╗ █████╗ ██╗      ██████╗ ██████╗\n"
+            + "        ██╔═══╝ ██╔════╝    ██║   ██║██╔══██╗██║     ██╔═══██╗██╔══██╗\n"
+            + "        ██████╗ █████╗      ██║   ██║███████║██║     ██║   ██║██████╔╝\n"
+            + "             ██╗██╔══╝      ╚██╗ ██╔╝██╔══██║██║     ██║   ██║██╔══██╗\n"
+            + "        ██████╔╝██║          ╚████╔╝ ██║  ██║███████╗╚██████╔╝██║  ██║\n"
+            + "        ╚═════╝ ╚═╝           ╚═══╝  ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝  ╚═╝\n"
+            + "\n"
+            + "               Press any key or click to continue...";
+
+        Label logoLabel = new Label(logoText); // Monospace label renders box-drawing characters.
+        logoLabel.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 12px;");
+
+        VBox logoBox = new VBox(logoLabel);
+        logoBox.setAlignment(Pos.CENTER);
+        logoBox.setStyle("-fx-background-color: black;"); // Dark background for contrast.
+
+        Scene logoScene = new Scene(logoBox, 700, 420);
+        primaryStage.setScene(logoScene);
+        primaryStage.setTitle("Shadow of Valor");
+        primaryStage.show(); // U1: show the stage immediately; no blocking sleep.
+
+        // 12-color cycle (one color per KeyFrame, 300 ms apart). (U1)
+        Color[] colors = {
+            Color.RED, Color.LIMEGREEN, Color.YELLOW, Color.DODGERBLUE, Color.MEDIUMPURPLE,
+            Color.CYAN, Color.WHITE, Color.ORANGERED, Color.SPRINGGREEN,
+            Color.GOLD, Color.CORNFLOWERBLUE, Color.ORCHID
         };
 
-        // Loop through each color code to display the logo in alternating colors
-        for (String color : colors) 
+        Timeline timeline = new Timeline();
+        for (int i = 0; i < colors.length; i++)
         {
-            // Clear the console by printing multiple blank lines
-            for (int i = 0; i < 50; i++) 
-            {
-                System.out.println();
-            }
-
-            // Print the logo text in the current color
-            System.out.println(color +
-                               " ███████╗██╗  ██╗ █████╗  ██████╗   ███████  ██╗   ╔██ 	  ███████  ██████        ");
-            System.out.println(" ██╔════╝██║  ██║██╔══██╗ ██╔══██║ ██╔═══██╗ ██║   ║██ 	  ██╔══██╗ ██╔══╗   ");
-            System.out.println(" ███████╗███████║███████║ ██║  ██║ ██║   ██║ ██║╔█╗║██ 	  ██║  ██║ ██████╔");
-            System.out.println(" ╚════██║██╔══██║██╔══██║ ██║  ██║ ██║   ██║ ██║███║██ 	  ██║  ██║ ██╔═══╝ ");
-            System.out.println(" ███████║██║  ██║██║  ██║ █████╔═╝ ╚██████╔╝  ███ ███     ███████  ██║     ");
-            System.out.println(" ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚════╝        				    	                     ");
-            System.out.println("                 ██╗   ██╗ █████╗ ██╗       █████╗  ██████╗ ");
-            System.out.println("                 ██║   ██║██╔══██╗██║     ██╔═══██╗ ██╔══██╗");
-            System.out.println("                 ██║   ██║███████║██║     ██║   ██║ ██████╔╝");
-            System.out.println("                 ╚██╗ ██╔╝██╔══██║██║     ██║   ██║ ██╔═╗██   ");
-            System.out.println("                  ╚████╔╝ ██║  ██║███████╗ ██████╔╝ ██║ ╚═██ ");
-            System.out.println("                   ╚═══╝  ╚═╝  ╚═╝╚══════╝ ╚═════╝  ╚═╝    ██   ");
-            System.out.println("\033[0m"); // Reset to the default color
-
-            try 
-            {
-                Thread.sleep(800); // Pause for 0.1 second before switching colors
-            } 
-            catch (InterruptedException e)
-            {
-                e.printStackTrace(); // Handle any interruption errors
-            }
+            final Color c = colors[i];
+            timeline.getKeyFrames().add(
+                new KeyFrame(Duration.millis(300 * (i + 1)), e -> logoLabel.setTextFill(c)));
         }
 
-        // Execute the next action after the logo display completes
-        onLogoComplete.run();
+        // Guard against double-firing if both the timeline and a key/click fire close together.
+        final boolean[] done = {false};
+        Runnable goToMenu = () ->
+        {
+            if (!done[0])
+            {
+                done[0] = true;
+                onLogoComplete.run();
+            }
+        };
+
+        timeline.setOnFinished(e -> goToMenu.run()); // Go to menu when animation ends.
+        logoScene.setOnKeyPressed(e -> { timeline.stop(); goToMenu.run(); }); // Skip on key press.
+        logoScene.setOnMouseClicked(e -> { timeline.stop(); goToMenu.run(); }); // Skip on click.
+
+        timeline.play(); // Start cycling colors; no Thread.sleep anywhere. (U1)
     }
 
     /**
-     * Prompts the user to choose their next action from a list of options.
-     * Options include navigating to the character selection screen, move list, or backstory.
+     * Displays the main menu with navigation buttons.
+     * Also exposed as a static method so GameSession can return here. (U6)
      */
+    public static void showMainMenu()
+    {
+        instance.promptUserChoice();
+    }
+
     /**
      * Displays the main menu with buttons instead of Scanner input.
      */
-    public void promptUserChoice() 
+    public void promptUserChoice()
     {
         VBox mainMenu = new VBox(15); // Vertical layout for buttons
         mainMenu.setAlignment(Pos.CENTER);
@@ -132,7 +147,7 @@ public class FightingGameApp extends Application
         moveListButton.setOnAction(e -> showMoveListScreen());
 
         Button exitButton = new Button("Exit the Game");
-        exitButton.setOnAction(e -> 
+        exitButton.setOnAction(e ->
         {
             System.out.println("Exiting the game. Goodbye!");
             System.exit(0);
@@ -145,77 +160,69 @@ public class FightingGameApp extends Application
         primaryStage.show();
     }
 
-
     /**
      * Displays the character selection screen.
      * Sets a callback to start the game once both players are ready.
      */
-    private void showCharacterSelectionScreen() 
+    private void showCharacterSelectionScreen()
     {
         CharacterSelectScreen characterSelectScreen = new CharacterSelectScreen();
 
-        // Set the callback to start the game once both players are ready
-        characterSelectScreen.setOnReady((player1, player2) -> startGameWithCharacters(player1, player2));
+        // U2: callback receives specs; fresh Character instances are built in startGameWithSpecs.
+        characterSelectScreen.setOnReady((spec1, spec2) -> startGameWithSpecs(spec1, spec2));
 
-        // Set the character selection scene on the primary stage
         primaryStage.setScene(characterSelectScreen.getScene());
         primaryStage.show();
-        
     }
 
     /**
-     * Starts the game with the selected characters.
+     * Starts a match from two CharacterSpecs. (U2, U6)
+     * Creates fresh Character instances and passes rematch / main-menu callbacks to GameSession.
      *
-     * @param player1Character The character selected by Player 1.
-     * @param player2Character The character selected by Player 2.
+     * @param spec1 Spec for Player 1's character.
+     * @param spec2 Spec for Player 2's character.
      */
-    private void startGameWithCharacters(Character player1Character, Character player2Character)
+    private void startGameWithSpecs(CharacterRoster.CharacterSpec spec1, CharacterRoster.CharacterSpec spec2)
     {
-        // Pass the characters to the game logic and begin the match
-        GameApp.setPrimaryStage(primaryStage);
-        GameApp.startGameWithCharacters(player1Character, player2Character);
-    }
+        // Rematch restarts the match from the same specs; both players get fresh instances. (U6)
+        Runnable rematch = () -> startGameWithSpecs(spec1, spec2);
+        Runnable mainMenu = this::promptUserChoice; // Main Menu returns to the navigation screen. (U6)
 
+        GameApp.setPrimaryStage(primaryStage);
+        GameApp.startGameWithSpecs(spec1, spec2, rematch, mainMenu); // Build characters and start.
+    }
 
     /**
      * Displays the move list for the characters in a new window.
      */
-    private void showMoveListScreen() 
+    private void showMoveListScreen()
     {
-        // Setup and display the move list screen
         Stage moveListStage = new Stage(); // Create a new stage for the move list screen
         VBox root = new VBox(10); // Use a vertical layout with 10px spacing between elements
-        root.setStyle("-fx-padding: 20; -fx-alignment: center; -fx-background-color: white;"); // Apply padding, alignment, and background color styles
+        root.setStyle("-fx-padding: 20; -fx-alignment: center; -fx-background-color: white;");
 
-        // Add a title label for the move list
         Label title = new Label("Character Move List");
-        title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;"); // Style the title to be large and bold
+        title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
-        // Add the move list details in a label
         Label moveList = new Label(getMoveListDetails()); // Fetch the formatted move list details
-        moveList.setStyle("-fx-font-size: 14px;"); // Style the text for readability
+        moveList.setStyle("-fx-font-size: 14px;");
         moveList.setWrapText(true); // Allow the text to wrap if it exceeds the label's width
 
-     // Add a back button to return to the logo screen instead of closing the window
         Button backButton = new Button("Back");
-        backButton.setOnAction(event -> 
+        backButton.setOnAction(event ->
         {
-            Stage stage = (Stage) backButton.getScene().getWindow(); // Get the current stage
-            stage.close(); // Close the current screen
-           promptUserChoice(); // Show the menu
+            Stage stage = (Stage) backButton.getScene().getWindow();
+            stage.close();
+            promptUserChoice(); // Show the menu.
         });
 
-
-        // Add the title, move list, and back button to the layout
         root.getChildren().addAll(title, moveList, backButton);
 
-        // Create a new scene with the root layout and set it on the stage
-        Scene scene = new Scene(root, 600, 400); // Set dimensions for the move list screen
+        Scene scene = new Scene(root, 600, 400);
         moveListStage.setScene(scene);
-        moveListStage.setTitle("Move List"); // Set the title of the stage
-        moveListStage.show(); // Show the stage to the user
+        moveListStage.setTitle("Move List");
+        moveListStage.show();
     }
-
 
     /**
      * Helper method to return the move list details as a formatted string.
@@ -224,26 +231,22 @@ public class FightingGameApp extends Application
      */
     private String getMoveListDetails()
     {
-        // Return a formatted string containing the move list details for both players
         return """
                 Character Move List:
                 Player 1:
-                - Move: W (Up), A (Left), S (Down), D (Right): Movement keys for Player 1
-                - Basic Attack: X: Basic attack key for Player 1
-                - Special Ability: C: Special ability key for Player 1
-                - Shield: Z:  Shield key for Player 1
-                - Projectile: V:  Projectile key for Player 1
-                - Readying up will not let you deselect your character, once you ready up, you cannot go back
+                - Move: W (Up), A (Left), S (Down), D (Right)
+                - Basic Attack: X
+                - Special Ability: C
+                - Shield: Z
+                - Projectile: V (hold to charge, release to fire)
 
                 Player 2:
-                - Move: Up Arrow (Up), Left Arrow (Left), Down Arrow (Down), Right Arrow (Right): Movement keys for Player 2
-                - Basic Attack: J: Basic attack key for Player 2
-                - Special Ability: K: Special ability key for Player 2
-                - Shield: M:  Shield key for Player 2
-                - Projectile: L:  Projectile key for Player 2
-                - Readying up will not let you deselect your character, once you ready up, you cannot go back
-                
-               """ ; 
+                - Move: Up Arrow, Left Arrow, Down Arrow, Right Arrow
+                - Basic Attack: J
+                - Special Ability: K
+                - Shield: M
+                - Projectile: L (hold to charge, release to fire)
+               """;
     }
 
 }

@@ -36,11 +36,14 @@ public class GameApp
     }
 
     /**
-     * Delegates to GameSession.startGameWithCharacters. (U3)
+     * Delegates to GameSession.startGameWithSpecs. (U2, U6)
+     * Builds fresh Character instances from the specs and starts a new match.
      */
-    public static void startGameWithCharacters(Character player1, Character player2)
+    public static void startGameWithSpecs(CharacterRoster.CharacterSpec spec1,
+                                          CharacterRoster.CharacterSpec spec2,
+                                          Runnable rematch, Runnable mainMenu)
     {
-        GameSession.startGameWithCharacters(player1, player2);
+        GameSession.startGameWithSpecs(spec1, spec2, rematch, mainMenu);
     }
 
 }

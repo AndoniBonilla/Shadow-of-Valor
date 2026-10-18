@@ -1,147 +1,76 @@
 package FightingGame;
 
 // Import necessary Java and JavaFX packages
-import java.util.ArrayList; // For creating resizable arrays to store character data
-import java.util.List; // For managing collections of characters
+import java.util.ArrayList; // For creating resizable arrays to store character specs
+import java.util.List; // For managing collections of character specs
 import javafx.scene.paint.Color; // For setting the colors of characters
 
 /**
  * Class to manage and provide the list of playable characters.
  */
-public class CharacterRoster 
+public class CharacterRoster
 {
 
     /**
-     * Returns a list of playable characters with their attributes.
-     *
-     * @return a List of Character objects representing the roster of playable characters.
+     * Immutable spec for one fighter: just data, no JavaFX nodes. (U2)
+     * Call createCharacter() when a match actually starts to get a live instance.
+     * Separating spec from instance makes mirror matches possible because two fresh
+     * Character objects (each with their own sprite) are created from the same spec.
      */
-	public static List<Character> getCharacters() 
-	{
-	    // Initialize an empty list to store character objects.
-	    List<Character> characters = new ArrayList<>();
+    public record CharacterSpec(
+        String name,
+        int maxHealth,
+        int attackPower,
+        int defensePower,
+        String specialAbilityName,
+        Color color
+    )
+    {
+        /** Builds a fresh Character instance from this spec. (U2) */
+        public Character createCharacter()
+        {
+            // x/y are placeholder values; GameSession repositions sprites before play starts.
+            return new Character(name, maxHealth, attackPower, defensePower,
+                                 specialAbilityName, color, 0, 0);
+        }
+    }
 
-	    // Blaze: A character with the ability to apply a burning effect to opponents.
-	    Character blaze = new Character(
-	        "Blaze", // Name of the character
-	        800, // Maximum health
-	        68, // Attack power
-	        68, // Defense power
-	        "Flame Rush", // Name of the special ability
-	        Color.DARKRED, // Color representing the character
-	        100, // Starting position for the character on the X-coordinate
-	        200
-	    );
+    /**
+     * Returns the immutable specs for all 8 fighters. (U2)
+     * No Character instances — and therefore no JavaFX nodes — are created here.
+     * Opponent pairings are intentionally absent; GameSession calls setOpponent() instead.
+     *
+     * @return a List of CharacterSpec records representing the roster.
+     */
+    public static List<CharacterSpec> getCharacters()
+    {
+        List<CharacterSpec> specs = new ArrayList<>();
 
-	    // Aqua: A defensive character with a speed boost ability.
-	    Character aqua = new Character(
-	        "Aqua", // Name of the character
-	        1093, // Maximum health
-	        48, // Attack power
-	        74, // Defense power
-	        "Speed Surge", // Name of the special ability
-	        Color.DARKBLUE, // Color representing the character
-	        120, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Blaze: aggressive fighter with a temporary attack boost.
+        specs.add(new CharacterSpec("Blaze", 800, 68, 68, "Flame Rush", Color.DARKRED));
 
-	    // Volt: A fast character with a chance to stun opponents.
-	    Character volt = new Character(
-	        "Volt", // Name of the character
-	        624, // Maximum health
-	        93, // Attack power
-	        35, // Defense power
-	        "Electric Burst", // Name of the special ability
-	        Color.GOLD, // Color representing the character
-	        140, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Aqua: defensive fighter with a speed surge ability.
+        specs.add(new CharacterSpec("Aqua", 1093, 48, 74, "Speed Surge", Color.DARKBLUE));
 
-	    // Amber: A character with fast attacks and amplifier ability.
-	    Character amber = new Character(
-	        "Amber", // Name of the character
-	        900, // Maximum health
-	        60, // Attack power
-	        60, // Defense power
-	        "Blazing Punch", // Name of the special ability
-	        Color.ORANGERED, // Color representing the character
-	        160, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Volt: fast attacker that can stun opponents.
+        specs.add(new CharacterSpec("Volt", 624, 93, 35, "Electric Burst", Color.GOLD));
 
-	    // Shade: A teleporting character with damage bonuses from teleports.
-	    Character shade = new Character(
-	        "Shade", // Name of the character
-	        687, // Maximum health
-	        87, // Attack power
-	        40, // Defense power
-	        "Shadow Step", // Name of the special ability
-	        Color.MEDIUMPURPLE, // Color representing the character
-	        180, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Amber: balanced fighter with a single powerful next-attack boost.
+        specs.add(new CharacterSpec("Amber", 900, 60, 60, "Blazing Punch", Color.ORANGERED));
 
-	    // Terra: A nature-based character with healing mechanics.
-	    Character terra = new Character(
-	        "Terra", // Name of the character
-	        1054, // Maximum health
-	        40, // Attack power
-	        68, // Defense power
-	        "Nature's Embrace", // Name of the special ability
-	        Color.DARKGREEN, // Color representing the character
-	        200, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Shade: teleporter with a next-attack damage bonus.
+        specs.add(new CharacterSpec("Shade", 687, 87, 40, "Shadow Step", Color.MEDIUMPURPLE));
 
-	    // Night: A character focused on attacking with his special ability.
-	    Character night = new Character(
-	        "Night", // Name of the character
-	        750, // Maximum health
-	        80, // Attack power
-	        50, // Defense power
-	        "Shadow Strike", // Name of the special ability
-	        Color.DARKSLATEGRAY, // Color representing the character
-	        220, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Terra: tanky healer with the lowest attack power.
+        specs.add(new CharacterSpec("Terra", 1054, 40, 68, "Nature's Embrace", Color.DARKGREEN));
 
-	    // Boulder: A defensive tank character with a temporary defense boost ability.
-	    Character boulder = new Character(
-	        "Boulder", // Name of the character
-	        1125, // Maximum health
-	        35, // Attack power
-	        80, // Defense power
-	        "Earthquake", // Name of the special ability
-	        Color.SADDLEBROWN, // Color representing the character
-	        240, // Starting position for the character on the X-coordinate
-	        200
-	    );
+        // Night: stealthy fighter with a invisibility + attack combo.
+        specs.add(new CharacterSpec("Night", 750, 80, 50, "Shadow Strike", Color.DARKSLATEGRAY));
 
-	    // Set up character opponents for gameplay.
-	    blaze.setOpponent(aqua);
-	    aqua.setOpponent(blaze);
+        // Boulder: defensive tank with a long stun.
+        specs.add(new CharacterSpec("Boulder", 1125, 35, 80, "Earthquake", Color.SADDLEBROWN));
 
-	    volt.setOpponent(amber);
-	    amber.setOpponent(volt);
-
-	    shade.setOpponent(terra);
-	    terra.setOpponent(shade);
-
-	    night.setOpponent(boulder);
-	    boulder.setOpponent(night);
-
-	    // Add all characters to the roster list.
-	    characters.add(blaze);
-	    characters.add(aqua);
-	    characters.add(volt);
-	    characters.add(amber);
-	    characters.add(shade);
-	    characters.add(terra);
-	    characters.add(night);
-	    characters.add(boulder);
-
-	    // Return the completed list of characters.
-	    return characters;
-	}
+        return specs;
+    }
 
 }
