@@ -1,5 +1,5 @@
 package FightingGame;
-// Defines the `FightingGame` package. Groups related game files, such as `Character` and `GameSession`.
+// Defines the `FightingGame` package.
 
 import javafx.animation.KeyFrame;
 // Represents a single frame in an animation timeline.
@@ -16,7 +16,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Pane;
 // Container used in addBarsToPane (U3) to attach bars without referencing GameSession directly.
 import javafx.scene.paint.Color;
-// A more generic version of `Color`, allows for gradient or pattern fills.
+// Allows for color specification used in sprites and effects.
 import javafx.scene.shape.Circle;
 // Represents the head of the character as a circular node.
 import javafx.scene.shape.Line;
@@ -36,7 +36,6 @@ public class Character
     private Timeline shieldPulseAnimation; // Animates the shield glow radius when active.
 
     private Character opponent; // Reference to the character's current opponent.
-    private Character owner; // Tracks the entity controlling the character or launching a projectile.
 
     private ProgressBar shieldBar; // Visual representation of the shield's current strength.
     private Group characterSprite; // The character's visual representation, composed of shapes.
@@ -44,18 +43,21 @@ public class Character
 
     private double health; // Current health of the character.
     private int maxHealth; // Maximum possible health of the character.
-    private int attackPower; // Damage dealt during an attack.
 
-    private boolean isAttacking = false; // Indicates if the character is currently in wind-up.
-    private boolean isInLag = false; // Indicates if the character is in attack recovery lag.
+    // C2: base stats are set once at construction and never mutated by buffs.
+    private int baseAttackPower; // Attack power before any active multipliers are applied.
+    private double baseMovementSpeed = 180; // U4: base pixels per second; buffs multiply this.
+
+    private double defensePower; // Defense attribute for reducing incoming damage.
+
+    private boolean isAttacking = false; // True while wind-up is in progress.
+    private boolean isInLag = false; // True during end-lag recovery after an attack.
     private boolean isShieldAvailable = true; // G6: initialized true so shield works from the start.
     private boolean isCharging = false; // Tracks if the character is charging a projectile.
     private boolean isShieldActive = false; // Indicates if the shield is currently active.
     private boolean projectileKeyPressed = false; // Tracks if the projectile key was recently pressed.
 
     private double shieldLevel = 1.0; // Current shield strength (0.0 to 1.0).
-    private double defensePower; // Defense attribute for reducing incoming damage.
-    private double movementSpeed = 180; // U4: pixels per second (replaces the old 3.0 per-frame value).
 
     private long shieldLastUsedTime; // Tracks the last time the shield was broken.
     private long lastSpecialUsedTime = 0; // Timestamp of the last special ability use.
@@ -64,20 +66,41 @@ public class Character
     private long stunnedUntil = 0; // G2: timestamp until which the character is stunned (0 = not stunned).
 
     // T2: attack timing driven by wall-clock timestamps; no Thread.sleep anywhere.
-    private long attackWindUpEndMs = 0;        // Epoch-ms when wind-up completes.
-    private long attackEndLagEndMs = 0;        // Epoch-ms when end-lag completes.
+    private long attackWindUpEndMs = 0;       // Epoch-ms when wind-up completes.
+    private long attackEndLagEndMs = 0;       // Epoch-ms when end-lag completes.
     private Character pendingAttackTarget = null; // Target stored while wind-up is in progress.
 
     // G1: per-instance multiplier replaces the shared mutable static fields.
     private double attackSpeedMultiplier = 1.0; // Multiplier applied to attack wind-up and end-lag.
 
+    // C2: active buff state — timestamped so buffs expire cleanly without mutations.
+    private double activeAttackMult = 1.0;     // Multiplier applied on top of baseAttackPower.
+    private long activeAttackMultExpiry = 0;   // Epoch-ms; 0 = no active attack buff.
+    private double activeSpeedMult = 1.0;      // Multiplier applied on top of baseMovementSpeed.
+    private long activeSpeedMultExpiry = 0;    // Epoch-ms; 0 = no active speed buff.
+    private double nextAttackBonus = 0;        // Flat damage bonus consumed by the next attack.
+    private long nextAttackBonusExpiry = 0;    // Epoch-ms; bonus expires if unused after 5 s.
+
+    // C4: heal-over-time state, applied per frame via update().
+    private double healPerSecond = 0;    // HP gained per second; 0 = no active heal.
+    private long healUntilMs = 0;        // Epoch-ms when the heal-over-time effect stops.
+
     // G1: base timing constants; never mutated.
-    private static final long   BASE_ATTACK_DELAY_MS   = 500;    // Base wind-up time in milliseconds.
-    private static final long   BASE_END_LAG_MS        = 1350;   // Base recovery lag in milliseconds.
-    private static final long   SHIELD_COOLDOWN        = 5000;   // Cooldown after shield breaks (ms).
-    private static final long   MAX_CHARGE_MS          = 2000;   // G5: maximum charge duration (ms).
+    private static final long   BASE_ATTACK_DELAY_MS   = 500;   // Base wind-up time in milliseconds.
+    private static final long   BASE_END_LAG_MS        = 1350;  // Base recovery lag in milliseconds.
+    private static final long   SHIELD_COOLDOWN        = 5000;  // Cooldown after shield breaks (ms).
+    private static final long   MAX_CHARGE_MS          = 2000;  // G5: maximum charge duration (ms).
     private static final double SHIELD_REGEN_RATE      = 0.0035; // Shield regen per frame.
     private static final double SHIELD_DEPLETION_RATE  = 0.0058; // Shield depletion per frame while active.
+
+    // C1: named combat constants replace magic numbers.
+    private static final double MISS_CHANCE     = 0.10;  // Probability of a complete miss.
+    private static final double CRIT_CHANCE     = 0.30;  // Probability of a critical hit (top of range).
+    private static final double CRIT_MULTIPLIER = 1.15;  // Damage multiplier on a critical hit.
+    private static final int    MIN_DAMAGE      = 18;    // Minimum damage floor.
+
+    // G3: maximum distance (px) for melee to connect.
+    private static final int ATTACK_RANGE = 70;
 
     public Character(String name, int maxHealth, int attackPower, int defensePower,
                      String specialAbilityName, Color color, int x, int y)
@@ -89,8 +112,8 @@ public class Character
         this.maxHealth = maxHealth;
         this.health = maxHealth;
 
-        // Assigns the attack power and defense attributes.
-        this.attackPower = attackPower;
+        // C2: store base stats; they are never overwritten by buff methods.
+        this.baseAttackPower = attackPower;
         this.defensePower = defensePower;
 
         // Sets the name of the special ability for this character.
@@ -135,133 +158,134 @@ public class Character
 
     /**
      * Adds this character's health and shield bars to the given pane. (U3)
-     * GameSession calls this after repositioning the sprite so bars track the fighter's in-game position.
+     * Called by GameSession after repositioning the sprite so bars track the fighter's position.
      *
      * @param root The pane that will display the bars.
      */
     public void addBarsToPane(Pane root)
     {
-        double x = characterSprite.getLayoutX(); // Use the in-game position, not the CharacterRoster position.
+        double x = characterSprite.getLayoutX(); // Use in-game position, not CharacterRoster position.
         double y = characterSprite.getLayoutY();
-        shieldBar.setLayoutX(x); // Reposition shield bar to match sprite.
+        shieldBar.setLayoutX(x);
         shieldBar.setLayoutY(y - 30);
-        healthBar.setLayoutX(x); // Reposition health bar to match sprite.
+        healthBar.setLayoutX(x);
         healthBar.setLayoutY(y - 20);
-        root.getChildren().add(shieldBar); // Attach to the active game pane.
+        root.getChildren().add(shieldBar);
         root.getChildren().add(healthBar);
     }
 
-    public Group getCharacterSprite()
-    {
-        // Returns the graphical representation (sprite) of the character.
-        return characterSprite;
-    }
+    // --- Getters and setters ---
 
-    public void setProjectileKeyPressed(boolean pressed)
-    {
-        // Sets whether the projectile key is currently being pressed.
-        this.projectileKeyPressed = pressed;
-    }
+    public Group getCharacterSprite() { return characterSprite; }
 
-    public void setOpponent(Character opponent)
-    {
-        // Assigns an opponent to this character.
-        this.opponent = opponent;
-    }
+    public void setProjectileKeyPressed(boolean pressed) { this.projectileKeyPressed = pressed; }
 
-    public int getAttackPower()
-    {
-        // Returns the character's current attack power.
-        return attackPower;
-    }
+    public void setOpponent(Character opponent) { this.opponent = opponent; }
 
-    public double getMaxHealth()
-    {
-        // Returns the maximum health of the character.
-        return this.maxHealth;
-    }
+    /** Returns base attack power (before active buffs). Use getEffectiveAttack() for combat. */
+    public int getAttackPower() { return baseAttackPower; }
 
-    public Character getOpponent()
-    {
-        // Returns the opponent assigned to this character.
-        return opponent;
-    }
+    public double getMaxHealth() { return this.maxHealth; }
 
+    public Character getOpponent() { return opponent; }
+
+    /** Returns current effective movement speed including any active speed buff. (C2) */
     public double getMovementSpeed()
     {
-        // Returns the character's movement speed (pixels per second after U4).
-        return movementSpeed;
+        return getEffectiveSpeed(); // C2: apply active buff multiplier.
     }
 
-    public void setMovementSpeed(double movementSpeed)
-    {
-        // Sets the character's movement speed to a new value.
-        this.movementSpeed = movementSpeed;
-    }
+    public String getSpecialAbilityName() { return this.specialAbilityName; }
 
-    public void setAttackPower(int attackPower)
-    {
-        // Updates the character's attack power to a new value.
-        this.attackPower = attackPower;
-    }
+    public double getDefensePower() { return defensePower; }
 
-    public String getSpecialAbilityName()
-    {
-        // Returns the name of the character's special ability.
-        return this.specialAbilityName;
-    }
+    public double getShieldLevel() { return shieldLevel; }
 
-    public double getDefensePower()
-    {
-        // Returns the character's defense power.
-        return defensePower;
-    }
+    public double getHealth() { return health; }
 
-    public double getShieldLevel()
-    {
-        // Returns the current shield level (0.0 to 1.0).
-        return shieldLevel;
-    }
+    public String getName() { return name; }
 
-    public double getHealth()
-    {
-        // Returns the character's current health value.
-        return health;
-    }
+    public double getHealthPercentage() { return (double) health / maxHealth; }
 
-    public String getName()
-    {
-        // Returns the name of the character.
-        return name;
-    }
+    public boolean isShieldActive() { return isShieldActive; }
 
-    public double getHealthPercentage()
-    {
-        // Returns the character's current health as a percentage of the maximum health.
-        return (double) health / maxHealth;
-    }
+    public boolean isProjectileKeyPressed() { return projectileKeyPressed; }
 
-    public boolean isShieldActive()
-    {
-        // Returns whether the shield is currently active.
-        return isShieldActive;
-    }
+    public Color getColor() { return color; }
 
-    public boolean isProjectileKeyPressed()
-    {
-        // Returns whether the projectile key is currently pressed.
-        return projectileKeyPressed;
-    }
+    // --- C2: Buff system ---
 
-    public Color getColor()
+    /**
+     * Returns the effective attack power for this frame: base * multiplier + next-attack bonus. (C2)
+     * Active multiplier expires automatically after its duration.
+     */
+    public int getEffectiveAttack()
     {
-        // Returns the primary color of the character's sprite.
-        return color;
+        long now = System.currentTimeMillis();
+        double mult  = (now < activeAttackMultExpiry) ? activeAttackMult : 1.0;
+        double bonus = (now < nextAttackBonusExpiry && nextAttackBonus > 0) ? nextAttackBonus : 0;
+        return (int)(baseAttackPower * mult + bonus);
     }
 
     /**
+     * Returns effective movement speed: base * active speed multiplier. (C2)
+     * Active multiplier expires automatically after its duration.
+     */
+    public double getEffectiveSpeed()
+    {
+        long now = System.currentTimeMillis();
+        return baseMovementSpeed * ((now < activeSpeedMultExpiry) ? activeSpeedMult : 1.0);
+    }
+
+    /**
+     * Applies a timed attack power multiplier. Replaces any existing attack buff. (C2)
+     * The base stat is never mutated; expiry drives the revert automatically.
+     */
+    public void applyAttackBuff(double multiplier, int durationMs)
+    {
+        activeAttackMult = multiplier;
+        activeAttackMultExpiry = System.currentTimeMillis() + durationMs;
+        System.out.println(name + " attack buff: x" + multiplier + " for " + durationMs + "ms");
+    }
+
+    /**
+     * Applies a timed movement speed multiplier. Replaces any existing speed buff. (C2)
+     */
+    public void applySpeedBuff(double multiplier, int durationMs)
+    {
+        activeSpeedMult = multiplier;
+        activeSpeedMultExpiry = System.currentTimeMillis() + durationMs;
+        System.out.println(name + " speed buff: x" + multiplier + " for " + durationMs + "ms");
+    }
+
+    /**
+     * Adds a flat bonus to the next attack. The bonus is consumed on the next swing
+     * (hit, miss, or out of range) or expires after 5 seconds if unused. (C2)
+     */
+    public void applyNextAttackBonus(double bonus)
+    {
+        nextAttackBonus += bonus; // Stack bonuses from multiple sources before expiry.
+        nextAttackBonusExpiry = System.currentTimeMillis() + 5000; // 5-second expiry window.
+        System.out.println(name + " next attack bonus: +" + (int)bonus + " (expires in 5s)");
+    }
+
+    // --- C4: Heal-over-time ---
+
+    /**
+     * Starts a heal-over-time effect applied per frame in update(). (C4)
+     * Stops automatically when healUntilMs is reached or the character is defeated.
+     */
+    public void startHealOverTime(double healPerSec, int durationMs)
+    {
+        this.healPerSecond = healPerSec;
+        this.healUntilMs = System.currentTimeMillis() + durationMs;
+        System.out.println(name + " starts healing " + String.format("%.1f", healPerSec) + " HP/s");
+    }
+
+    // --- G2: Stun ---
+
+    /**
      * Returns true if the character is currently stunned. (G2)
-     * Uses a timestamp so stun duration is accurate regardless of frame rate.
      */
     public boolean isStunned()
     {
@@ -270,124 +294,141 @@ public class Character
 
     /**
      * Applies a stun lasting durationMs milliseconds. (G2)
-     * A new stun extends stunnedUntil to the later end time; it never shortens.
-     * Uses PauseTransition to restore opacity on the FX thread when the stun expires.
+     * A new stun only extends stunnedUntil to the later end time; it never shortens.
      */
     public void applyStun(long durationMs)
     {
         long newEnd = System.currentTimeMillis() + durationMs;
-        if (newEnd > stunnedUntil) // Only extend, never shorten an existing stun.
+        if (newEnd > stunnedUntil)
         {
-            stunnedUntil = newEnd;
+            stunnedUntil = newEnd; // Extend; never shorten.
         }
         System.out.println(name + " is stunned for " + durationMs + "ms.");
 
         if (characterSprite != null)
         {
-            characterSprite.setOpacity(0.5); // Dim sprite to indicate stunned state.
-
-            // Restore opacity on FX thread once the stun actually expires.
+            characterSprite.setOpacity(0.5); // Dim sprite to show stunned state.
             long remaining = Math.max(0, stunnedUntil - System.currentTimeMillis());
             PauseTransition restoreOpacity = new PauseTransition(Duration.millis(remaining));
             restoreOpacity.setOnFinished(e ->
             {
                 if (!isStunned() && characterSprite != null)
                 {
-                    characterSprite.setOpacity(1.0); // Only restore after stun has ended.
+                    characterSprite.setOpacity(1.0);
                 }
             });
             restoreOpacity.play();
         }
     }
 
+    // --- U4: Frame-rate-independent movement ---
+
     /**
-     * Moves the sprite by a normalized direction vector scaled by speed * dt. (U4)
-     * Positions are clamped to GameSession boundaries instead of rejected, so diagonal
-     * movement against a wall slides smoothly along it.
-     *
-     * @param ndx Normalized X component of the movement direction.
-     * @param ndy Normalized Y component of the movement direction.
-     * @param dt  Seconds elapsed since the last frame.
+     * Moves the sprite by a normalized direction vector scaled by effective speed * dt. (U4, C2)
+     * Positions are clamped to boundaries instead of rejected.
      */
     public void moveBy(double ndx, double ndy, double dt)
     {
-        if (isStunned()) return; // G2: movement is blocked while stunned.
-        double newX = characterSprite.getLayoutX() + ndx * movementSpeed * dt;
-        double newY = characterSprite.getLayoutY() + ndy * movementSpeed * dt;
-        // Clamp to boundaries (U4: clamp instead of reject, so diagonal never stops early).
+        if (isStunned()) return; // G2: blocked while stunned.
+        double speed = getEffectiveSpeed(); // C2: apply active speed buff.
+        double newX = characterSprite.getLayoutX() + ndx * speed * dt;
+        double newY = characterSprite.getLayoutY() + ndy * speed * dt;
         newX = Math.max(GameSession.BOUNDARY_LEFT,   Math.min(GameSession.BOUNDARY_RIGHT,  newX));
         newY = Math.max(GameSession.BOUNDARY_TOP,    Math.min(GameSession.BOUNDARY_BOTTOM, newY));
         characterSprite.setLayoutX(newX);
         characterSprite.setLayoutY(newY);
     }
 
+    // --- T2, G3: Per-frame attack state machine ---
+
     /**
-     * Per-frame update: resolves attack wind-up and end-lag via wall-clock timestamps. (T2)
-     * Called by GameSession every frame on the FX thread; no Thread.sleep is used.
-     *
-     * @param nowMillis System.currentTimeMillis() sampled at the start of the frame.
-     * @param dt        Seconds elapsed since the last frame (capped to 0.05 by the caller).
+     * Per-frame update: resolves attack wind-up / end-lag and applies heal-over-time. (T2, C4)
+     * Called by GameSession every frame on the FX thread.
      */
     public void update(long nowMillis, double dt)
     {
-        // Wind-up complete: deliver the pending attack to the stored target.
+        // Wind-up complete: deliver the pending attack.
         if (isAttacking && nowMillis >= attackWindUpEndMs)
         {
             if (pendingAttackTarget != null)
             {
-                int damage = calculateDamage(); // Compute damage on the FX thread.
-                pendingAttackTarget.takeDamage(damage, null); // Apply to the opponent.
-                System.out.println(name + " attacked " + pendingAttackTarget.getName()
-                    + " for " + damage + " damage!");
+                // G3: Only deal damage when within ATTACK_RANGE px of the opponent.
+                double dx   = characterSprite.getLayoutX()
+                    - pendingAttackTarget.getCharacterSprite().getLayoutX();
+                double dy   = characterSprite.getLayoutY()
+                    - pendingAttackTarget.getCharacterSprite().getLayoutY();
+                double dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist <= ATTACK_RANGE)
+                {
+                    int damage = calculateDamage(pendingAttackTarget); // C1: corrected formula.
+                    pendingAttackTarget.takeDamage(damage, null);
+                    System.out.println(name + " attacked " + pendingAttackTarget.getName()
+                        + " for " + damage + " damage!");
+                }
+                else
+                {
+                    System.out.println(name + "'s attack whiffed — opponent too far ("
+                        + (int)dist + " px, range=" + ATTACK_RANGE + ").");
+                }
             }
-            pendingAttackTarget = null; // Clear pending target.
+
+            // C2: Consume next-attack bonus regardless of hit, miss, or out-of-range.
+            nextAttackBonus = 0;
+            nextAttackBonusExpiry = 0;
+
+            pendingAttackTarget = null;
             isAttacking = false;
             isInLag = true; // Enter recovery lag.
             attackEndLagEndMs = nowMillis + (long)(BASE_END_LAG_MS / attackSpeedMultiplier);
         }
 
-        // End-lag complete: ready for the next attack.
+        // End-lag complete: ready for next attack.
         if (isInLag && nowMillis >= attackEndLagEndMs)
         {
             isInLag = false;
             System.out.println(name + " is ready to attack again!");
         }
+
+        // C4: Heal-over-time — applied per frame as a double, stops if defeated.
+        if (healPerSecond > 0 && nowMillis < healUntilMs && health > 0)
+        {
+            setHealth(health + healPerSecond * dt);
+        }
     }
+
+    // --- G1: Attack speed boost ---
 
     /**
      * Boosts attack speed by setting the per-instance multiplier for the given duration. (G1)
      * Uses PauseTransition so the reset runs on the FX thread with no Thread.sleep.
-     * Only this character's timing is affected; opponents are unaffected.
-     *
-     * @param speedMultiplier Factor by which attack speed is increased.
-     * @param duration        Duration of the boost in milliseconds.
      */
     public void boostAttackSpeed(double speedMultiplier, int duration)
     {
-        attackSpeedMultiplier = speedMultiplier; // Apply the speed boost to this character.
+        attackSpeedMultiplier = speedMultiplier;
         System.out.println(name + " attack speed boosted by " + speedMultiplier + "x!");
 
-        // Reset multiplier to default after the boost expires (FX-thread safe).
         PauseTransition reset = new PauseTransition(Duration.millis(duration));
         reset.setOnFinished(e ->
         {
-            attackSpeedMultiplier = 1.0; // Restore default attack timing.
+            attackSpeedMultiplier = 1.0;
             System.out.println(name + "'s attack speed boost has ended.");
         });
         reset.play();
     }
 
-    // Begins the charging process for a projectile.
+    // --- Projectile charging ---
+
     public void startCharging()
     {
-        if (isStunned()) // G2: blocked while stunned.
+        if (isStunned())
         {
             System.out.println(name + " is stunned and cannot charge a projectile!");
             return;
         }
         if (!isCharging)
         {
-            chargingStartTime = System.currentTimeMillis(); // Record when charging began.
+            chargingStartTime = System.currentTimeMillis();
             isCharging = true;
         }
     }
@@ -398,21 +439,16 @@ public class Character
      */
     public Projectile launchChargedProjectile(Character opponent)
     {
-        // Ensure the character is charging before launching.
         if (!isCharging)
         {
             System.out.println(name + " is not charging and cannot launch a projectile.");
             return null;
         }
-
-        // Ensure the opponent is valid.
         if (opponent == null)
         {
             System.err.println(name + " cannot launch a projectile because the opponent is null.");
             return null;
         }
-
-        // Ensure charging has a valid start time.
         if (chargingStartTime == -1)
         {
             System.err.println(name + " attempted to launch a projectile without a valid charging state.");
@@ -420,24 +456,19 @@ public class Character
         }
 
         long chargeDuration = System.currentTimeMillis() - chargingStartTime;
-        chargingStartTime = -1; // Reset charging state.
+        chargingStartTime = -1;
         isCharging = false;
 
-        // Clamp charge duration to the maximum. (G5)
-        long clamped = Math.min(chargeDuration, MAX_CHARGE_MS);
+        long clamped = Math.min(chargeDuration, MAX_CHARGE_MS); // G5: clamp.
         double ratio = (double) clamped / MAX_CHARGE_MS;
-
-        // Size: 10 px (no charge) to 30 px (full charge). (G5)
-        double size = 10.0 + ratio * 20.0;
-
-        // Speed: 400 px/s (no charge) to 200 px/s (full charge). (G5)
-        double speed = 400.0 - ratio * 200.0;
+        double size  = 10.0 + ratio * 20.0;  // 10–30 px.
+        double speed = 400.0 - ratio * 200.0; // 400–200 px/s.
 
         Projectile projectile = new Projectile(this,
-            getCharacterSprite().getLayoutX(), // Start X-coordinate.
-            getCharacterSprite().getLayoutY(), // Start Y-coordinate.
-            opponent.getCharacterSprite().getLayoutX(), // Target X-coordinate.
-            opponent.getCharacterSprite().getLayoutY(), // Target Y-coordinate.
+            getCharacterSprite().getLayoutX(),
+            getCharacterSprite().getLayoutY(),
+            opponent.getCharacterSprite().getLayoutX(),
+            opponent.getCharacterSprite().getLayoutY(),
             size, speed);
 
         System.out.println(name + " launched a projectile (size=" + String.format("%.1f", size)
@@ -445,66 +476,57 @@ public class Character
         return projectile;
     }
 
-    // Updates the shield state, including regeneration, depletion, and cooldown.
+    // --- Shield ---
+
     public void updateShieldState(long currentTime)
     {
-        // Ensure the shield bar is initialized before performing operations.
         if (shieldBar == null)
         {
             System.err.println("Error: shieldBar is not initialized for " + name);
             return;
         }
 
-        // Handle shield depletion if it is active.
         if (isShieldActive)
         {
-            shieldLevel -= SHIELD_DEPLETION_RATE; // Deplete shield at constant rate.
+            shieldLevel -= SHIELD_DEPLETION_RATE;
             if (shieldLevel <= 0)
             {
-                breakShield(); // G6: unified break method handles cooldown and visual.
+                breakShield(); // G6: unified break.
             }
         }
-        // Regenerate the shield if it is not active and not full.
         else if (shieldLevel < 1.0)
         {
-            shieldLevel = Math.min(1.0, shieldLevel + SHIELD_REGEN_RATE); // Cap at 100%.
+            shieldLevel = Math.min(1.0, shieldLevel + SHIELD_REGEN_RATE);
         }
 
-        // Check if the shield cooldown has expired and re-enable the shield.
         if (!isShieldAvailable && (currentTime - shieldLastUsedTime >= SHIELD_COOLDOWN))
         {
-            isShieldAvailable = true; // Cooldown expired; shield can be activated again.
+            isShieldAvailable = true; // Cooldown expired.
         }
 
-        // Update the shield bar's progress and color based on availability.
         shieldBar.setProgress(shieldLevel);
-        shieldBar.setStyle(isShieldAvailable ? "-fx-accent: green;" : "-fx-accent: red;"); // Red on cooldown.
+        shieldBar.setStyle(isShieldAvailable ? "-fx-accent: green;" : "-fx-accent: red;");
     }
 
-    /**
-     * Breaks the shield: sets level to 0, starts the 5-second cooldown,
-     * and removes the visual glow effect. (G6)
-     * Call only from the FX thread (updateShieldState, releaseShieldKey, takeDamage).
-     */
+    /** Breaks the shield: sets level to 0, starts cooldown, removes visual. (G6) */
     public void breakShield()
     {
-        shieldLevel = 0; // Deplete shield completely.
-        isShieldAvailable = false; // Block reactivation until cooldown expires.
-        shieldLastUsedTime = System.currentTimeMillis(); // Start the cooldown timer.
+        shieldLevel = 0;
+        isShieldAvailable = false;
+        shieldLastUsedTime = System.currentTimeMillis();
         System.out.println(name + "'s shield is broken!");
-        deactivateShield(); // Remove visual effect (must run on FX thread).
+        deactivateShield();
     }
 
     /**
      * Activates the shield if all preconditions are met. (G6, G7)
-     * Returns early if the shield is already active, on cooldown, depleted, or the
-     * character is stunned. The DropShadow and Timeline are created once and reused.
+     * Early return if already active, on cooldown, depleted, or stunned.
      */
     public void activateShield()
     {
         if (isShieldActive || !isShieldAvailable || shieldLevel <= 0 || isStunned())
         {
-            return; // G6: guard against invalid activation (also fixes G7 Timeline stacking).
+            return; // Guard against invalid activation.
         }
 
         if (characterSprite != null)
@@ -515,194 +537,156 @@ public class Character
                 shieldEffect.setColor(this.name.equals("Aqua") ? Color.DARKBLUE : Color.BLUE);
                 shieldEffect.setRadius(20);
             }
-            characterSprite.setEffect(shieldEffect); // Apply glow.
+            characterSprite.setEffect(shieldEffect);
 
             if (shieldPulseAnimation == null) // G7: create Timeline only once.
             {
                 shieldPulseAnimation = new Timeline(
-                    new KeyFrame(Duration.millis(500), e -> shieldEffect.setRadius(20)), // Pulse down.
-                    new KeyFrame(Duration.millis(1000), e -> shieldEffect.setRadius(30))  // Pulse up.
+                    new KeyFrame(Duration.millis(500), e -> shieldEffect.setRadius(20)),
+                    new KeyFrame(Duration.millis(1000), e -> shieldEffect.setRadius(30))
                 );
                 shieldPulseAnimation.setCycleCount(Timeline.INDEFINITE);
             }
-            shieldPulseAnimation.play(); // Restart the existing animation.
+            shieldPulseAnimation.play();
         }
         isShieldActive = true;
     }
 
-    // Deactivates the shield, removing the glowing effect.
     public void deactivateShield()
     {
         if (characterSprite != null)
         {
-            characterSprite.setEffect(null); // Remove glow.
-            if (shieldPulseAnimation != null)
-            {
-                shieldPulseAnimation.stop(); // Stop animation; keep reference for reuse. (G7)
-            }
+            characterSprite.setEffect(null);
+            if (shieldPulseAnimation != null) shieldPulseAnimation.stop();
         }
         isShieldActive = false;
     }
 
-    /**
-     * Deactivates the shield when the shield key is released.
-     */
     public void releaseShieldKey()
     {
         if (isShieldActive)
         {
-            deactivateShield(); // Deactivate the shield and remove visual effects.
-            shieldLastUsedTime = System.currentTimeMillis(); // Record for cooldown tracking.
+            deactivateShield();
+            shieldLastUsedTime = System.currentTimeMillis();
         }
     }
 
+    // --- Attack ---
+
     /**
-     * Starts the attack wind-up. The actual damage is delivered in update() when
-     * attackWindUpEndMs is reached. (T2: no Thread.sleep; timing via timestamps.)
-     *
-     * @param opponent The opponent character being attacked.
+     * Starts the attack wind-up. Damage is delivered in update() when the timer fires. (T2)
+     * G2: blocked while stunned. G1: wind-up duration uses the per-instance speed multiplier.
      */
     public void performAttack(Character opponent)
     {
-        if (isStunned()) // G2: attack is blocked while stunned.
+        if (isStunned())
         {
             System.out.println(name + " is stunned and cannot attack!");
             return;
         }
-
-        if (isAttacking || isInLag) // Previous attack still in wind-up or end-lag.
-        {
-            return;
-        }
-
-        if (this.owner == null) // Ensure owner reference is set (used by calculateDamage).
-        {
-            this.owner = this;
-        }
+        if (isAttacking || isInLag) return;
 
         System.out.println(this.name + " is winding up for an attack...");
         isAttacking = true;
-        pendingAttackTarget = opponent; // Store target; damage applied when wind-up ends.
+        pendingAttackTarget = opponent;
         attackWindUpEndMs = System.currentTimeMillis()
-            + (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier); // G1: per-instance timing.
-        applyAttackWindUpEffect(); // Visual glow during wind-up.
+            + (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier);
+        applyAttackWindUpEffect();
     }
 
     /**
      * Applies a red glow during wind-up and clears it via PauseTransition. (T2)
-     * Called from performAttack which runs on the FX thread; no Thread.sleep used.
+     * Called on the FX thread; no Thread.sleep needed.
      */
     private void applyAttackWindUpEffect()
     {
         if (characterSprite == null) return;
-
         DropShadow attackEffect = new DropShadow();
         attackEffect.setColor(Color.RED);
         attackEffect.setRadius(30);
-        characterSprite.setEffect(attackEffect); // On FX thread; direct call is safe.
+        characterSprite.setEffect(attackEffect);
 
-        // Clear the effect after the wind-up duration using a FX-thread-safe timer.
-        long windUp = (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier); // G1: scaled.
+        long windUp = (long)(BASE_ATTACK_DELAY_MS / attackSpeedMultiplier);
         PauseTransition clear = new PauseTransition(Duration.millis(windUp));
-        clear.setOnFinished(e ->
-        {
-            if (characterSprite != null) characterSprite.setEffect(null);
-        });
+        clear.setOnFinished(e -> { if (characterSprite != null) characterSprite.setEffect(null); });
         clear.play();
     }
 
     /**
-     * Calculates the damage dealt during an attack.
-     *
-     * @return The amount of damage to be dealt.
+     * Calculates the damage dealt during an attack. (C1)
+     * Order: miss check → raw = max(MIN_DAMAGE, effective - defense) → crit multiplies raw.
+     * Uses the opponent parameter directly; the owner field has been removed. (C1)
      */
-    private int calculateDamage()
+    private int calculateDamage(Character target)
     {
-        if (this.owner == null)
-        {
-            System.err.println("Error: Owner is null during damage calculation.");
-            return 0;
-        }
-
-        Character target = this.owner.getOpponent(); // Opponent of the attacker.
         if (target == null)
         {
-            System.err.println("Error: Opponent is null during damage calculation.");
+            System.err.println("Error: Target is null during damage calculation.");
             return 0;
         }
 
-        int baseDamage = this.attackPower;
-        double randomFactor = Math.random();
+        double roll = Math.random();
 
-        if (randomFactor > 0.7) // 30% chance for a critical hit.
+        // C1: Miss check first.
+        if (roll < MISS_CHANCE)
         {
-            System.out.println(owner.getName() + " landed a critical hit!");
-            return (int)(baseDamage * 1.15); // Critical hit deals 115% damage.
-        }
-
-        if (randomFactor < 0.1) // 10% chance for a miss.
-        {
-            System.out.println(owner.getName() + " missed the attack!");
+            System.out.println(name + " missed the attack!");
             return 0;
         }
 
-        // Damage reduced by the target's defense; minimum of 18.
-        double defenseReduction = target.getDefensePower();
-        int finalDamage = Math.max(18, baseDamage - (int) defenseReduction);
-        System.out.println(owner.getName() + " dealt " + finalDamage + " damage to " + target.getName());
-        return finalDamage;
+        // C1: Raw damage formula.
+        int effective = getEffectiveAttack(); // C2: uses base + active buffs.
+        int raw = Math.max(MIN_DAMAGE, effective - (int) target.getDefensePower());
+
+        // C1: Crit check last.
+        if (roll > (1.0 - CRIT_CHANCE))
+        {
+            System.out.println(name + " landed a critical hit!");
+            return (int)(raw * CRIT_MULTIPLIER);
+        }
+
+        System.out.println(name + " dealt " + raw + " damage to " + target.getName());
+        return raw;
     }
+
+    // --- Damage reception ---
 
     /**
      * Applies damage, considering the active shield. (T2)
-     * Now always called from the FX thread (game loop or update()), so no Platform.runLater needed.
-     *
-     * @param damage     The amount of damage to be applied.
-     * @param projectile The projectile that caused the damage (null for melee).
+     * Always called from the FX thread after Phase 3; no Platform.runLater needed.
      */
     public void takeDamage(double damage, Projectile projectile)
     {
-        // Check if the shield is active.
         if (isShieldActive)
         {
-            double shieldDamage = damage;
-            shieldLevel -= shieldDamage / 100.0; // Reduce shield by absorbed damage.
-
+            shieldLevel -= damage / 100.0; // Shield absorbs the hit. (G4: projectiles also absorbed)
             if (shieldLevel <= 0)
             {
-                // T2: now on FX thread; direct call is safe (no Platform.runLater needed).
                 shieldLevel = 0;
                 isShieldAvailable = false; // G6: start cooldown.
                 shieldLastUsedTime = System.currentTimeMillis();
                 System.out.println(name + "'s shield is broken!");
-                deactivateShield(); // Remove glow; runs on FX thread.
+                deactivateShield();
             }
             else
             {
-                System.out.println(name + "'s shield absorbed " + shieldDamage
-                    + " damage. Remaining shield: " + (shieldLevel * 100) + "%");
+                System.out.println(name + "'s shield absorbed " + damage
+                    + " damage. Shield: " + (int)(shieldLevel * 100) + "%");
             }
             return; // Shield absorbed the hit; no health damage.
         }
 
-        // Apply damage directly to health if the shield is inactive.
-        health = Math.max(0, health - damage);
-        System.out.println(name + " took " + damage + " damage. Remaining health: " + health);
-
-        if (health <= 0)
-        {
-            System.out.println(name + " has been defeated!");
-        }
+        setHealth(health - damage); // C4: route through setHealth for defeat-no-revival check.
     }
+
+    // --- Special ability ---
 
     /**
      * Executes the character's special ability if off cooldown. Blocked while stunned. (G2)
-     *
-     * @param opponent The opponent who may be affected by the special ability.
      */
     public void performSpecialAbility(Character opponent)
     {
-        if (isStunned()) // G2: special ability is blocked while stunned.
+        if (isStunned())
         {
             System.out.println(name + " is stunned and cannot use a special ability!");
             return;
@@ -718,56 +702,47 @@ public class Character
         {
             long timeRemaining = (specialAbilityCooldown
                 - (System.currentTimeMillis() - lastSpecialUsedTime)) / 1000;
-            System.out.println(name + "'s special ability is on cooldown! Cooldown time remaining: "
-                + timeRemaining + " seconds.");
+            System.out.println(name + "'s special ability is on cooldown! "
+                + timeRemaining + " seconds remaining.");
         }
     }
 
-    /**
-     * Checks if the character's special ability can be used.
-     *
-     * @return True if the special ability can be used, false otherwise.
-     */
     public boolean canUseSpecialAbility()
     {
-        long currentTime = System.currentTimeMillis();
-        return currentTime - lastSpecialUsedTime >= specialAbilityCooldown;
+        return System.currentTimeMillis() - lastSpecialUsedTime >= specialAbilityCooldown;
     }
 
+    // --- Health management ---
+
     /**
-     * Updates the character's health (clamped to [0, maxHealth]). (T2)
-     * Now always called from the FX thread (Timeline or game loop); no Platform.runLater needed.
-     *
-     * @param health The new health value.
+     * Sets health, clamped to [0, maxHealth]. (C4)
+     * Never revives a defeated character: once health reaches 0, it stays at 0.
+     * Accepts a double so heal-over-time fractions accumulate correctly.
      */
-    public void setHealth(int health)
+    public void setHealth(double newHealth)
     {
-        if (health < 0)
-        {
-            this.health = 0;
-        }
-        else if (health > maxHealth)
+        if (health <= 0) return; // C4: once defeated, no revival.
+        if (newHealth > maxHealth)
         {
             this.health = maxHealth;
         }
+        else if (newHealth <= 0)
+        {
+            this.health = 0;
+            System.out.println(name + " has been defeated!");
+        }
         else
         {
-            this.health = health;
+            this.health = newHealth;
         }
-        System.out.println(name + "'s health is now: " + this.health);
+        System.out.println(name + "'s health is now: " + (int)this.health);
 
         if (healthBar != null)
         {
-            double progress = (double) this.health / maxHealth;
-            healthBar.setProgress(progress); // T2: on FX thread; direct call is safe.
+            healthBar.setProgress(this.health / maxHealth); // T2: on FX thread; direct call is safe.
         }
     }
 
-    /**
-     * Sets the cooldown for the character's special ability.
-     *
-     * @param cooldown The cooldown duration in milliseconds.
-     */
     public void setSpecialAbilityCooldown(int cooldown)
     {
         this.specialAbilityCooldown = cooldown;

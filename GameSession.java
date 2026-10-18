@@ -2,6 +2,7 @@ package FightingGame;
 
 // Import statements for all required utilities and libraries
 
+import java.util.ArrayList; // G4: collects projectile-vs-projectile losers before bulk removal.
 import java.util.HashSet; // For tracking active keys and one-shot key events.
 import java.util.Iterator; // For safe projectile list iteration with removal.
 import java.util.List; // For passing the player list to RoundManager.
@@ -285,17 +286,65 @@ public class GameSession
                 processInput(player1, player2, P1_CONTROLS, dt);
                 processInput(player2, player1, P2_CONTROLS, dt);
 
-                // Advance every active projectile; remove any that leave the arena.
+                // --- G4: Two-pass projectile update ---
+                // Pass 1: move each projectile; remove out-of-bounds; check vs each player.
                 Iterator<Projectile> it = projectileManager.getActiveProjectiles().iterator();
                 while (it.hasNext())
                 {
                     Projectile p = it.next();
                     p.updatePosition(dt); // Move along its direction vector.
+
                     if (isOutOfBounds(p))
                     {
                         root.getChildren().remove(p.getSprite()); // Remove visual.
                         it.remove(); // Remove from list (safe via iterator).
+                        continue;
                     }
+
+                    // Check whether this projectile hits the opposing player (not its owner).
+                    Character hitTarget = null;
+                    if (p.getOwner() != player1)
+                    {
+                        hitTarget = player1; // Projectile fired by P2; check P1.
+                    }
+                    else
+                    {
+                        hitTarget = player2; // Projectile fired by P1; check P2.
+                    }
+                    projectileManager.handleCollision(p, hitTarget, it); // Deals damage and removes.
+                }
+
+                // Pass 2: projectile-vs-projectile — collect losers first, then bulk-remove.
+                // A separate loop avoids ConcurrentModificationException on the live list.
+                List<Projectile> toRemove = new ArrayList<>();
+                List<Projectile> live = projectileManager.getActiveProjectiles();
+                for (int i = 0; i < live.size(); i++)
+                {
+                    for (int j = i + 1; j < live.size(); j++)
+                    {
+                        Projectile a = live.get(i);
+                        Projectile b = live.get(j);
+                        if (a.collidesWith(b))
+                        {
+                            if (a.getSize() > b.getSize())
+                            {
+                                toRemove.add(b); // Smaller loses.
+                            }
+                            else if (b.getSize() > a.getSize())
+                            {
+                                toRemove.add(a); // Smaller loses.
+                            }
+                            else
+                            {
+                                toRemove.add(a); // Equal size: both removed.
+                                toRemove.add(b);
+                            }
+                        }
+                    }
+                }
+                for (Projectile loser : toRemove)
+                {
+                    projectileManager.removeProjectile(loser); // Removes sprite and list entry.
                 }
 
                 updateBars(player1, player2); // Refresh HUD bars.

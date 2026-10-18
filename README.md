@@ -178,7 +178,7 @@ Attacks: Each character has a basic attack with a 10% chance to miss an attack a
 
 Blocking: Reduces damage but you lose some of your shield 
 
-Projectiles: Mostly for fun, they don't do damage(unfortunatly this had to be sacrficed for gameplay functionality)
+Projectiles: Charged by holding V(P1)/L(P2) and released to fire. Larger projectiles deal more damage. Projectiles from opposing players cancel each other out (the larger one survives).
 
 Abilties: Cooldowns apply to attacks and special abilities
 
